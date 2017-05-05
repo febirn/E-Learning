@@ -5,7 +5,7 @@ namespace App\Models\Users;
 class User extends \App\Models\BaseModel
 {
     protected $table = 'users';
-    protected $column = ['id', 'name', 'username', 'email', 'password', 'phone', 'active_token', 'is_active'];
+    protected $column = ['id', 'name', 'username', 'email', 'password', 'phone', 'photo', 'active_token', 'is_active'];
     protected $check = ['username', 'email'];
 
     public function register(array $data)

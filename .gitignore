@@ -3,5 +3,5 @@ phinx.yml
 app/settings.php
 composer.lock
 mysql/
-features/bootstrap/config.json
 behat.yml
+features/bootstrap/config.json

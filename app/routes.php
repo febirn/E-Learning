@@ -3,9 +3,12 @@
 $app->group('/api', function() use ($app,$container) {
 	$app->post('/register', 'App\Controllers\Api\UserController:register')->setName('api.user.register');
 	$app->get('/active', 'App\Controllers\Api\UserController:activeUser')->setName('user.active');
+
 	$app->post('/login', 'App\Controllers\Api\UserController:login')->setName('api.user.login');
 
-});
+	$app->put('/profile/edit/{id}', 'App\Controllers\Api\UserController:editProfile')->setName('api.edit.profile.user');
+
+})->add(new App\Middlewares\Api\AuthToken($container));
 
 $app->group('', function() use ($app,$container) {
     $app->get('/', 'App\Controllers\Web\HomeController:index')->setName('web.home');

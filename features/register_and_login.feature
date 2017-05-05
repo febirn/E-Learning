@@ -8,8 +8,8 @@ Feature: User Register And Login
         And I fill "name" with "Test Behat"
         Then I store it
 
-    Scenario: Active User Or Verifivcation Email
-        When I active user with email "testbehat@gmail.com"
+    Scenario: Verification Email
+        When I verify user with email "testbehat@gmail.com"
 
     Scenario: Login User
         When I POST url "api/login"
@@ -18,4 +18,4 @@ Feature: User Register And Login
         Then I store it
 
     Scenario: Delete New User
-        When I delete user with email "testbehat@gmail.com"
+        When I delete user with username "testbehat"
