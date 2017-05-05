@@ -48,7 +48,6 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
     public function gatherContexts(BeforeScenarioScope $scope)
     {
         $environment = $scope->getEnvironment();
-    
         $this->paramContext = $environment->getContext('ParamContext');
     }
 
@@ -421,7 +420,6 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
         return $dbh;
     }
 
-    /**
      * @getException Error
      */
     public function getException($exception)

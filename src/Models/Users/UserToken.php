@@ -5,7 +5,7 @@ namespace App\Models\Users;
 class UserToken extends \App\Models\BaseModel
 {
     protected $table = 'user_token';
-    protected $column = ['id','user_id', 'token', 'expire_at'];
+    protected $column = ['id', 'user_id', 'token', 'expire_at'];
     protected $check = ['user_id'];
 
     public function setToken($id)
