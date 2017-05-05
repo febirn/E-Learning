@@ -1,0 +1,3 @@
+{% for data in data %}
+    {{baseUrl}}{{path_for('web.user.active')}}?token={{data.active_token}}
+{% endfor %}

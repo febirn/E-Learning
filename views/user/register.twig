@@ -4,42 +4,56 @@
 <body class="hold-transition register-page">
     <div class="register-box">
         <div class="register-logo">
-            <a href="{{ path_for('home') }}"><b>Admin</b>LTE</a>
+            <a href="{{ path_for('web.home') }}"><b>Admin</b>LTE</a>
         </div>
         <div class="register-box-body">
             <p class="login-box-msg">Register a new membership</p>
-            <form action="" method="post">
-                <div class="form-group has-feedback">
-                    <input type="text" class="form-control" placeholder="username">
+            {% include 'templates/flash/flash.twig' %}
+            <form method="post">
+                <div class="form-group has-feedback {{ errors.username ? 'has-error': '' }}">
+                    <input type="text" name="username" class="form-control" placeholder="Username" value="{{ old.username }}">
                     <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                    {% if errors.username %}
+                        <span class="help-block">{{ errors.username | first }}</span>
+                    {% endif %}
                 </div>
-                <div class="form-group has-feedback">
-                    <input type="text" class="form-control" placeholder="name">
+
+                <div class="form-group has-feedback {{ errors.name ? 'has-error': '' }}">
+                    <input type="text" name="name" class="form-control" placeholder="Name" value="{{ old.name }}">
                     <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                    {% if errors.name %}
+                        <span class="help-block">{{ errors.name | first }}</span>
+                    {% endif %}
                 </div>
+
                 <div class="form-group has-feedback">
-                    <input type="text" class="form-control" placeholder="phone">
+                    <input type="text" class="form-control" placeholder="Phone">
                     <span class="glyphicon glyphicon-phone form-control-feedback"></span>
                 </div>
-                <div class="form-group has-feedback">
-                    <input type="email" class="form-control" placeholder="Email">
+
+                <div class="form-group has-feedback {{ errors.email ? 'has-error': '' }}">
+                    <input type="email" name="email" class="form-control" placeholder="Email" value="{{ old.email }}">
                     <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                    {% if errors.email %}
+                        <span class="help-block">{{ errors.email | first }}</span>
+                    {% endif %}
                 </div>
-                <div class="form-group has-feedback">
-                    <input type="password" class="form-control" placeholder="Password">
+
+                <div class="form-group has-feedback {{ errors.password ? 'has-error': '' }}">
+                    <input type="password" name="password" class="form-control" placeholder="Password" value="{{ old.password }}">
                     <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                    {% if errors.password %}
+                        <span class="help-block">{{ errors.password | first }}</span>
+                    {% endif %}
                 </div>
-                <div class="form-group has-feedback">
-                    <input type="password" class="form-control" placeholder="Retype password">
-                    <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
-                </div>
+
                 <div class="row">
                     <div class="col-xs-4">
                         <button type="submit" class="btn btn-primary btn-block btn-flat">Register</button>
                     </div>
                 </div>
             </form>
-            <a href="{{ path_for('signin') }}" class="text-center">I already have a membership</a>
+            <a href="{{ path_for('web.user.login') }}" class="text-center">I already have a membership</a>
         </div>
     </div>
 </body>

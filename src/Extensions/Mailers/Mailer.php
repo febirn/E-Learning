@@ -2,6 +2,8 @@
 
 namespace App\Extensions\Mailers;
 
+use \Psr\Http\Message\ResponseInterface as Response;
+
 class Mailer
 {
 	protected $view;
@@ -18,7 +20,7 @@ class Mailer
 	{
 		$message = new Message($this->mailer);
 
-		$message->body($this->view->fetch($template));
+		$message->body($this->view->fetch($template, ['data' => $data]));
 
 		call_user_func($callback, $message);
 

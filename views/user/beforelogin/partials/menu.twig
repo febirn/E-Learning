@@ -11,12 +11,12 @@
         </div>
         <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
-                <li><a href="{{ path_for('home') }}">Home</a></li>
-                <li><a href="{{ path_for('dashboard') }}">Course</a></li>
-                <li><a href="{{ path_for('article') }}">Article</a></li>
-                <li><a href="{{ path_for('upgrade') }}">Premium</a></li>
-                <li><a href="{{ path_for('signin') }}">Sign In</a></li>
-                <li><a href="{{ path_for('register') }}">Get an Account</a></li>
+                <li><a href="{{ path_for('web.home') }}">Home</a></li>
+                <li><a href="{# path_for('dashboard') #}">Course</a></li>
+                <li><a href="{# path_for('article') #}">Article</a></li>
+                <li><a href="{# path_for('upgrade') #}">Premium</a></li>
+                <li><a href="{{ path_for('web.user.login') }}">Sign In</a></li>
+                <li><a href="{{ path_for('web.user.register') }}">Get an Account</a></li>
             </ul>
         </div>
     </div>

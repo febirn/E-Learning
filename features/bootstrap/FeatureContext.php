@@ -1,4 +1,5 @@
 <?php
+
 use Behat\Behat\Context\ClosuredContextInterface;
 use Behat\Behat\Context\TranslatedContextInterface;
 use Behat\Behat\Context\Context;
@@ -13,7 +14,9 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Doctrine\DBAL\Driver\PDOMySql\Driver;
+
 require_once __DIR__ . '/../../vendor/autoload.php';
+
 /**
  * Defines application features from the specific context.
  */
@@ -41,7 +44,7 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
     public function gatherContexts(BeforeScenarioScope $scope)
     {
         $environment = $scope->getEnvironment();
-    
+
         $this->tokenContext = $environment->getContext('TokenContext');
     }
     /**
@@ -127,6 +130,7 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
                 'Authorization' => $this->tokenContext->token,
             ];
             $body = json_encode($this->_body);
+
             $this->_response = $this->_client
                                     ->request($this->_request['method'], $this->_request['url'], ['headers' => $headers, 'json' => $this->_body]);
         } catch (Exception $exception) {
@@ -156,28 +160,34 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
             'headers'   => $headers,
             'query'     => $query,
         ];
+
         $this->_response = $this->_client->request('GET', $url, $options);
     }
+
     /**
      * @seting database connect
      */
     public function dbConnect()
     {
         $file = json_decode(file_get_contents("config.json", 'r'), true);
+
         $username = $file['user'];
         $password = $file['pass'];
         $hostname = 'mysql:host=' . $file['host'] ;
         $database = 'dbname=' . $file['db'];
         $port     = 'port=' . $file['port'];
+
         $dbh = new PDO($hostname.';'.$database.';'.$port, $username, $password);
         return $dbh;
     }
+
     /**
      * @getException Error
      */
     public function getException($exception)
     {
         $getResponse = $exception->getResponse();
+
         $data =  json_decode($getResponse->getBody()->getContents());
  
         if (!($data->status == 200)) {
@@ -188,6 +198,7 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
             }
         }
     }
+
     /**
      * @When I active user with email :email
      */
@@ -195,6 +206,7 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
     {
         $this->dbConnect()->query("UPDATE users SET is_active = 1 where email = '$email'");
     }
+
      /**
      * @When I delete user with email :email
      */

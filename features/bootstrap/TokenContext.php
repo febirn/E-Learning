@@ -1,12 +1,15 @@
 <?php
+
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\BehatContext;
 use Behat\MinkExtension\Context\MinkContext;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+
 class TokenContext implements Context
 {
     public $token;
     private $featureContext;
+
      /** @BeforeScenario */
    public function gatherContexts(BeforeScenarioScope $scope)
    {
@@ -14,6 +17,7 @@ class TokenContext implements Context
    
        $this->featureContext = $environment->getContext('FeatureContext');
    }
+
    /**
     * @Given the token :token
     */
