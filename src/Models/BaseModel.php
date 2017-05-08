@@ -16,14 +16,14 @@ abstract class BaseModel
 		$this->query = null;
 	}
 
-	private function setDb()
+	protected function setDb()
 	{
 		global $container;
 
 		$this->db = $container['db'];
 	}
 
-	private function getBuilder()
+	protected function getBuilder()
 	{
 		if ($this->db == null) {
 			$this->setDb();
@@ -145,7 +145,7 @@ abstract class BaseModel
            ->setParameters($paramData)
            ->execute();
 
-        return (int)$this->db->lastInsertId();
+        return (int) $this->db->lastInsertId();
     }
 
     /**
@@ -260,7 +260,7 @@ abstract class BaseModel
 
         if ($check) {
             $this->update($data, 'id', $check['id']);
-            return $this->find('id', $check['id'])->fetch();  
+            return $this->find('id', $check['id'])->fetch();
         } else {
             return $this->create($data);
         }

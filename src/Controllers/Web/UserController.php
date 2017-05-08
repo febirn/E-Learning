@@ -12,6 +12,7 @@ class UserController extends \App\Controllers\BaseController
     {
         return $this->view->render($response,'user/register.twig');
     }
+
     public function postRegister(Request $request, Response $response)
     {
         $req = $request->getParsedBody();
@@ -20,15 +21,34 @@ class UserController extends \App\Controllers\BaseController
             $client = $this->testing->request('POST',
                       $this->router->pathFor('api.user.register'),
                       ['json' => $req]);
-            return $response->withRedirect($this->router->pathFor(
-                   'web.user.register',
-                   ['message' => 'success registered check your email']));
+
+            $this->flash->addMessage(
+                'success','Success registered please check your email'
+            );
+
+            $resp = $response->withRedirect($this->router->pathFor(
+                   'web.user.register'));
         } catch (GuzzleException $e) {
-            $error = $e->getResponse()->getBody()->getContents();
-            // return $response->withRedirect($this->router->pathFor('web.user.register',['errors' => $error]));
-            echo $error;
+            $data = json_decode($e->getResponse()->getBody()->getContents(), true);
+
+            $error = $data['data'] ? $data['data'] : $data['message'];
+
+            if (is_array($error)) {
+                foreach ($error as $key => $val) {
+                    $_SESSION['errors'][$key] = $val;
+                }
+            } else {
+                $errorArr = explode(' ', $error);
+
+                $_SESSION['errors'][lcfirst($errorArr[0])][] = $error;
+            }
+
+            $this->flash->addMessage('errors', 'Failed check your data');
+
+            return $response->withRedirect($this->router->pathFor('web.user.register'));
         }
     }
+
     public function activeUser(Request $request, Response $response)
     {
         $options = [
@@ -36,43 +56,59 @@ class UserController extends \App\Controllers\BaseController
                 'token' => $request->getQueryParam('token'),
             ]
         ];
+
         try {
-            $activation = $this->testing->request('GET', $this->router->pathFor('user.active'), $options);
-            return $response->withRedirect($this->router->pathFor(
-                   'web.user.register',
-                   ['message' => 'success registered check your email']));
+            $activation = $this->testing->request('GET', $this->router->pathFor('api.user.active'), $options);
+
             if ($activation->getStatusCode() == 200) {
+                $this->flash->addMessage('success','success! your account activated');
                 return $response->withRedirect(
-                    $this->router->pathFor('web.user.login',
-                    ['message' => 'your account successfully activated']));
+                    $this->router->pathFor('web.home'));
             } else {
-                echo "failed to activate your account";
+                $this->flash->addMessage('errors','Failed your account is not activated');
+                return $response->withRedirect(
+                    $this->router->pathFor('web.home'));
             }
         } catch (GuzzleException $e) {
-            $error = $e->getResponse()->getBody()->getContents();
-            echo $error;
+            $error = json_decode($e->getResponse()->getBody()->getContents(), true);
+
+            $this->flash->addMessage('errors', $error['message']);
+
+            return $response->withRedirect(
+                $this->router->pathFor('web.home'));
         }
     }
+
     public function getLogin (Request $request, Response $response)
     {
         return $this->view->render($response, 'user/login.twig');
     }
+
     public function postLogin(Request $request, Response $response)
     {
         $body = $request->getParsedBody();
+
         try {
             $login = $this->testing->request('POST', $this->router->pathFor('api.user.login'),['json' => $body]);
 
             if ($login->getStatusCode() == 200) {
-                echo 'sukses login';
+            $_SESSION['login'] = json_decode($login->getBody()->getContents())->data;
+
+                $resp = $response->withRedirect($this->router->pathFor('web.home'));
+
             } else {
-                echo 'gagal login';
+                $this->flash->addMessage('errors', 'Failed to login');
+
+                $resp = $response->withRedirect($this->router->pathFor('web.user.login'));
             }
         } catch (GuzzleException $e) {
-            $error = $e->getResponse()->getBody()->getContents();
-            echo $error;
-            // return $response->withRedirect($this->router->pathFor('web.user.login',['errors' => $error]));
+            $error = json_decode($e->getResponse()->getBody()->getContents())->data;
+
+            $this->flash->addMessage('errors', $error);
+
+            return $response->withRedirect($this->router->pathFor('web.user.login'));
         }
+        return $resp;
     }
 
     public function getEditProfile (Request $request, Response $response, $args)
@@ -81,13 +117,14 @@ class UserController extends \App\Controllers\BaseController
 
         try {
             $client = $this->testing->request('GET', 
-                      $this->router->pathFor('api.user.edit.profile', 
+                      $this->router->pathFor('api.get.edit.profile.user', 
                       ['id' => $id]));
-            return $response->withRedirect($this->router->pathFor(
-                   'web.user.edit.profile', $client));
+            var_dump($client);
+            die();
+            return $this->view->render($response, 'user/afterlogin/users/profile.twig', $client);
         } catch (GuzzleException $e) {
             $error = $e->getResponse()->getBody()->getContents();
-            echo $error;
+
         }
     }
 
@@ -107,5 +144,12 @@ class UserController extends \App\Controllers\BaseController
             $error = $e->getResponse()->getBody()->getContents();
             echo $error;
         }
+        
+    }
+
+    public function logout(Request $request, Response $response)
+    {
+        unset($_SESSION['login']);
+        return $response->withRedirect($this->router->pathFor('web.home'));
     }
 }

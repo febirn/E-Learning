@@ -51,4 +51,7 @@ return [
 			'Content-Type' => 'application/json',
 		],
 	],
+
+	//setting upload
+	'uploadPath'	=> 'upload',
 ];
