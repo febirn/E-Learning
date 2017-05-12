@@ -92,6 +92,10 @@ class UserController extends \App\Controllers\BaseController
 
                 $getToken = $token->setToken($login['id']);
 
+                if (is_int($getToken)) {
+                    $getToken = $token->find('id', $getToken)->fetch();
+                }
+
                 $role = new \App\Models\Users\UserRole;
                 $findRole = $role->find('user_id', $getToken['user_id'])->fetch();
 
@@ -109,10 +113,24 @@ class UserController extends \App\Controllers\BaseController
         return $data;
     }
 
-    public function editProfile(Request $request, Response $response, $args)
+    public function getEditProfile(Request $request, Response $response, $args)
     {
-        $post = $request->getParsedBody();
+        $user = new \App\Models\Users\User;
+        $findUser = $user->find('id', $args['id'])->fetch();
 
+        $data = [
+            'name'  => $findUser['name'],
+            'email' => $findUser['email'],
+            'photo' => $findUser['photo'],
+        ];
+
+        return $this->responseDetail("Data Available", 200, $data);
+    }
+
+    public function putEditProfile(Request $request, Response $response, $args)
+    {
+        $post = $request->getParams();
+        
         $rule = [
             'required' => [
                 ['name'],
@@ -133,11 +151,48 @@ class UserController extends \App\Controllers\BaseController
                 unset($post['email']);
             }
 
-            $update = $user->checkOrUpdate($post, 'id', $findUser['id']);
+            if ($request->getUploadedFiles()) {
+                $file = new \Upload\File('photo', $this->upload);
+
+                $file->setName(uniqid());
+
+                $file->addValidations(array(
+
+                    new \Upload\Validation\Mimetype(array('image/png', 'image/gif','image/jpg', 'image/jpeg')),
+                        new \Upload\Validation\Size('5M')));
+
+                $photo = $file->getNameWithExtension();
+                
+                try {
+                    $file->upload();
+
+                    if ($findUser['photo'] != 'default_user.png') {
+                        unlink('upload/'.$findUser['photo']);
+                    }
+                } catch (\Exception $e) {
+                    $errors = $file->getErrors();
+
+                    return $this->responseDetail("Error", 400, $errors);
+                }
+
+            }
+
+            $token = new \App\Models\Users\UserToken;
+
+            $getToken = $token->find('user_id', $findUser['id'])->fetch();
+
+            $role = new \App\Models\Users\UserRole;
+            $findRole = $role->find('user_id', $getToken['user_id'])->fetch();
+
+            $key = [
+                'token' => $getToken,
+                'role'  => $findRole['role_id'],
+            ];
+
+            $update = $user->updateProfile($post, $findUser['id'], $photo);
 
             if (is_array($update)) {
-                $data = $this->responseDetail("Update Success", 200, $update);
-
+                $data = $this->responseDetail("Update Success", 200, $update, $key);
                 if ($findUser['email'] != $request->getParam('email')) {
                     $this->mailer->send('templates/mailer/update.twig', ['user' => $update], function($message) use ($findUser) {
                         $message->to($findUser['email']);
@@ -154,23 +209,6 @@ class UserController extends \App\Controllers\BaseController
         return $data;
     }
 
-    public function getEditProfile(Request $request, Response $response, $args)
-    {
-        $user = new \App\Models\Users\User;
-        
-        $findUser = $user->find('id', $args['id'])->fetch();
-
-        if ($findUser) {
-            $users['data'] = [
-                'id'     => $findUser['id'],
-                'name'   => $findUser['name'],
-                'email'  => $findUser['email'],
-            ];
-            $data = $this->responseDetail("Data Profile", 200, $users);
-        } else {
-            $data = $this->responseDetail("Data Not Found", 404);
-        }    
-    }
 }
 
 ?>

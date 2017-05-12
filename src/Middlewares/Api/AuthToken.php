@@ -10,7 +10,7 @@ class AuthToken extends \App\Middlewares\BaseMiddleware
 
 	public function __invoke(Request $request, Response $response, $next)
 	{
-		$whiteList = ['/', 'api/register', 'api/login'];
+		$whiteList = ['/', 'api/register', 'api/login', 'api/active'];
 
 		if (!in_array($request->getUri()->getPath(), $whiteList)) {
 			$token = $request->getHeader('Authorization')[0];
@@ -28,8 +28,9 @@ class AuthToken extends \App\Middlewares\BaseMiddleware
 					return $response->withHeader('Content-type', 'application/json')->withJson($data, $data['status']);
 			}
 		}
+		
 		$response = $next($request, $response);
-
+		
 		return $response;
 	}
 

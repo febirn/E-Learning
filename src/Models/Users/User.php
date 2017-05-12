@@ -21,6 +21,26 @@ class User extends \App\Models\BaseModel
 
         return $this->checkOrCreate($data);
     }
+
+    public function updateProfile($data, $id, $photo = null)
+    {
+        $data = [
+            'name'  => $data['name'],
+            'email' => $data['email'],
+            'phone' => $data['phone'],
+            'photo' => $photo,
+        ];
+
+        if (!$data['email']) {
+            unset($data['email']);
+        }
+
+        if ($photo == null) {
+            unset($data['photo']);
+        }
+
+        return $this->checkOrUpdate($data, 'id', $id);
+    }
 }
 
 ?>

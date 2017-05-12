@@ -82,3 +82,8 @@ $container['testing'] = function (Container $container) {
 	$setting = $container->get('settings')['guzzle'];
 	return new Client(['base_uri' => $setting['base_uri'], 'headers' => $setting['headers']]);
 };
+
+$container['upload'] = function (Container $container) {
+	$setting = $container->get('settings')['uploadPath'];
+	return new \Upload\Storage\FileSystem($setting);
+}; 

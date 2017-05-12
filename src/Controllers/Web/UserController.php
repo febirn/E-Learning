@@ -92,7 +92,11 @@ class UserController extends \App\Controllers\BaseController
             $login = $this->testing->request('POST', $this->router->pathFor('api.user.login'),['json' => $body]);
 
             if ($login->getStatusCode() == 200) {
-                $_SESSION['login'] = json_decode($login->getBody()->getContents())->data;
+                $contents = json_decode($login->getBody()->getContents(), true);
+                $_SESSION['login'] = [
+                    'data'  => $contents['data'],
+                    'meta'  => $contents['meta'],
+                ];
 
                 $resp = $response->withRedirect($this->router->pathFor('web.home'));
 
@@ -108,6 +112,73 @@ class UserController extends \App\Controllers\BaseController
 
             return $response->withRedirect($this->router->pathFor('web.user.login'));
         }
+        return $resp;
+    }
+
+    public function getEditProfile (Request $request, Response $response)
+    {
+        $data = $_SESSION['login'];
+
+        try {
+            $client = $this->testing->request('GET', 
+                      $this->router->pathFor('api.get.edit.profile.user', 
+                      ['id' => $data['data']['id']]));
+
+            return $this->view->render($response, 'user/afterlogin/users/profile.twig', ['user' => $data['data']]);
+        } catch (GuzzleException $e) {
+            $error = $e->getResponse()->getBody()->getContents();
+        }
+    }
+
+    public function postEditProfile (Request $request, Response $response)
+    {
+        $id = $_SESSION['login']['data']['id'];
+
+        $reqData = $request->getParams();
+        $reqPhoto = $request->getUploadedFiles()['photo'];
+        
+        $imageName = $reqPhoto->getClientFilename();
+        $imageMimeType = $reqPhoto->getClientMediaType();
+
+        if (!($imageName == null)) {   
+            $data[] = [
+                'name' => "photo",
+                'filename' => $imageName,
+                'Mime-Type'=> $imageMimeType,
+                'contents' => fopen(realpath($reqPhoto->file), 'rb'),
+            ];
+        }
+
+        foreach ($reqData as $key => $value) {
+            $data[] = [
+                'name' => $key,
+                'contents' => $value,
+            ];
+        }
+
+        try {
+            $client = $this->testing->request('POST', $this->router->pathFor('api.put.edit.profile.user', ['id' => $id]), [ 'multipart' => $data]);
+
+            $this->flash->addMessage('success', 'Data has bean Update');
+
+            $contents = json_decode($client->getBody()->getContents(), true);
+            
+            $_SESSION['login'] = [
+                'data'  => $contents['data'],
+                'meta'  => $contents['meta'],
+            ];
+
+            return $response->withRedirect($this->router->pathFor(
+                   'web.user.edit_profile'));
+        } catch (GuzzleException $e) {
+            $error = json_decode($e->getResponse()->getBody()->getContents())->data;
+
+            $this->flash->addMessage('errors', $error[0]);
+
+            return $response->withRedirect($this->router->pathFor(
+                   'web.user.edit_profile'));
+        }
+    
     }
 
     public function logout(Request $request, Response $response)
