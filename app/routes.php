@@ -3,8 +3,13 @@
 $app->group('/api', function() use ($app,$container) {
 	$app->post('/register', 'App\Controllers\Api\UserController:register');
 	$app->get('/active', 'App\Controllers\Api\UserController:activeUser')->setName('user.active');
-	$app->post('/login', 'App\Controllers\Api\UserController:login');
+    $app->post('/login', 'App\Controllers\Api\UserController:login');
 
+    $app->group('/admin', function() use ($app,$container) {
+       $app->post('/create_courses', 'App\Controllers\Api\CoursesController:addCourses');
+       $app->get('/courses/{slug}/add_content', 'App\Controllers\Api\CoursesController:getCourse')->setName('api.get.update.courses');
+        $app->post('/courses/{slug}/add_content', 'App\Controllers\Api\CoursesController:addCourseContent')->setName('api.put.update.courses');
+    });
 });
 
 $app->group('', function() use ($app,$container) {
