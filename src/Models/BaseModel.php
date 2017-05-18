@@ -273,4 +273,11 @@ abstract class BaseModel
         }
         $this->update($data, $column, $value);
     }
+
+    //find data with delete = 1
+    public function withDelete()
+    {
+        $this->query = $this->query->andWhere('deleted = 1');
+        return $this;
+    }
 }

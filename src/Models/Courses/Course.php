@@ -8,6 +8,61 @@ class Course extends \App\Models\BaseModel
     protected $column = ['id', 'user_id', 'title', 'title_slug', 'type', 'url_source_code', 'create_at', 'update_at', 'deleted'];
     protected $check = ["title_slug"];
 
+
+    public function getAllJoin($page, $limit)
+    {
+        $course = $this->getAll()->paginate($page, $limit);
+ 
+        if (!$course) {
+            return false;
+        }
+
+        foreach ($course['data'] as $keyCourse => $valueCourse) {
+            $qb = $this->getBuilder();
+            $categories = $qb->select('c.name as category')
+               ->from('categories', 'c')
+               ->innerJoin('c', 'course_category', 'cc', 'c.id = cc.category_id')
+               ->innerJoin('cc', 'courses', 'csr', 'cc.course_id = csr.id')
+               ->where('csr.id = :id AND csr.deleted = 0')
+               ->setParameter(':id', $valueCourse['id'])
+               ->execute()
+               ->fetchAll();
+
+            foreach ($categories as $keyCategory => $valueCategory) {
+            $course['data'][$keyCourse]['category'][] = $valueCategory['category'];
+            }
+        }
+        
+        return $course;
+    }
+
+    public function getCourseByUserId($userId, int $page, int $limit)
+    {
+        $course = $this->find('user_id', $userId)->withoutDelete()->paginate($page, $limit);
+
+        if (!$course) {
+            return false;
+        }
+
+        foreach ($course['data'] as $keyCourse => $valueCourse) {
+            $qb = $this->getBuilder();
+            $categories = $qb->select('c.name as category')
+               ->from('categories', 'c')
+               ->innerJoin('c', 'course_category', 'cc', 'c.id = cc.category_id')
+               ->innerJoin('cc', 'courses', 'csr', 'cc.course_id = csr.id')
+               ->where('csr.id = :id AND csr.deleted = 0')
+               ->setParameter(':id', $valueCourse['id'])
+               ->execute()
+               ->fetchAll();
+
+            foreach ($categories as $keyCategory => $valueCategory) {
+            $course['data'][$keyCourse]['category'][] = $valueCategory['category'];
+            }
+        }
+
+        return $course;
+    }
+
     public function add(array $data)
     {
         $data = [
@@ -44,21 +99,31 @@ class Course extends \App\Models\BaseModel
         return $course;
     }
 
-    public function edit($data, $slug)
+    public function getTrashByUserId($userId)
     {
-        $data = [
-            'title'         => $data['title'],
-            'title_slug'    => preg_replace('/[^A-Za-z0-9-]+/', '-', strtolower($data['title'])),
-        ];
-
-        $find = $this->find('title_slug', $slug)->fetch();
-
-        if ($find['title'] == $data['title']) {
-            unset($data['title']);
-            unset($data['title_slug']);
+        $course = $this->find('user_id', $userId)->withDelete()->fetchAll();
+        
+        if (!$course) {
+            return false;
         }
 
-        return $this->checkOrUpdate($data, 'title_slug', $slug);
+        foreach ($course['data'] as $keyCourse => $valueCourse) {
+            $qb = $this->getBuilder();
+            $categories = $qb->select('c.name as category')
+               ->from('categories', 'c')
+               ->innerJoin('c', 'course_category', 'cc', 'c.id = cc.category_id')
+               ->innerJoin('cc', 'courses', 'csr', 'cc.course_id = csr.id')
+               ->where('csr.id = :id AND csr.deleted = 1')
+               ->setParameter(':id', $valueCourse['id'])
+               ->execute()
+               ->fetchAll();
+
+            foreach ($categories as $keyCategory => $valueCategory) {
+                $course['data'][$keyCourse]['category'][] = $valueCategory['category'];
+            }
+        }
+        
+        return $course;
     }
 }
 
