@@ -33,7 +33,7 @@ class CreateTableUsers extends AbstractMigration
              ->addColumn('password', 'string')
              ->addColumn('name', 'string')
              ->addColumn('phone', 'string', ['null' => true])
-             ->addColumn('photo', 'string', ['null' => true])
+             ->addColumn('photo', 'string', ['default' => 'default_user.png'])
              ->addColumn('create_at', 'timestamp', ['default' => 'CURRENT_TIMESTAMP'])
              ->addColumn('update_at', 'timestamp', ['default' => 'CURRENT_TIMESTAMP', 'update' => 'CURRENT_TIMESTAMP'])
              ->addColumn('is_active', 'integer', ['default' => 0, 'limit' => 1])

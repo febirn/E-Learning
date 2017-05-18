@@ -35,7 +35,7 @@ $container['view'] = function (Container $container) {
 
 	$view->getEnvironment()->addGlobal('flash', $container->flash);
 
-	$view->getEnvironment()->addGlobal('baseUrl', 'http://localhost:8080');
+	$view->getEnvironment()->addGlobal('baseUrl', 'localhost:8080');
 
 	return $view;
 };
@@ -55,8 +55,8 @@ $container['mailer'] = function (Container $container) {
 	$mailer->isSMTP();
 	$mailer->Host = $setting['host'];
 	$mailer->Port = $setting['port'];
-	$mailer->SMTPSecure = 'tls';
-	$mailer->SMTPAuth = true;
+	$mailer->SMTPSecure = $setting['smtp_secure'];
+	$mailer->SMTPAuth = $setting['smtp_auth'];
 	$mailer->Username = $setting['username'];
 	$mailer->Password = $setting['password'];
 
@@ -71,5 +71,6 @@ $container['random'] = function (Container $container) {
 };
 
 $container['testing'] = function (Container $container) {
-	return new Client(['base_uri' => 'http://172.17.0.1:8080/public/', 'headers' => ['Content-type' => 'application/json']]);
+	$setting = $container->get('settings')['guzzle'];
+	return new Client(['base_uri' => $setting['base_uri'], 'headers' => $setting['headers']]);
 };

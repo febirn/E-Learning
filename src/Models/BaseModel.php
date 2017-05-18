@@ -4,48 +4,48 @@ namespace App\Models;
 
 abstract class BaseModel
 {
-	protected $table;
-	protected $column;
-	protected $db;
-	protected $query;
+    protected $table;
+    protected $column;
+    protected $db;
+    protected $query;
     protected $check; //column you want to check
 
-	public function __construct($db = null)
-	{
-		$this->db = $db;
-		$this->query = null;
-	}
+    public function __construct($db = null)
+    {
+        $this->db = $db;
+        $this->query = null;
+    }
 
-	protected function setDb()
-	{
-		global $container;
+    protected function setDb()
+    {
+        global $container;
 
-		$this->db = $container['db'];
-	}
+        $this->db = $container['db'];
+    }
 
-	protected function getBuilder()
-	{
-		if ($this->db == null) {
-			$this->setDb();
-		}
-		return $this->db->createQueryBuilder();
-	}
+    protected function getBuilder()
+    {
+        if ($this->db == null) {
+            $this->setDb();
+        }
+        return $this->db->createQueryBuilder();
+    }
 
-	public function getAll()
-	{
-		$qb = $this->getBuilder();
-		$this->query = $qb->select($this->column)
-						  ->from($this->table);
-		return $this;
-	}
+    public function getAll()
+    {
+        $qb = $this->getBuilder();
+        $this->query = $qb->select($this->column)
+                          ->from($this->table);
+        return $this;
+    }
 
-	/**
-	 * Paginate Query
-	 * @param  int $page  page
-	 * @param  int $limit data per page
-	 * @return array data paginate
-	 */
-	public function paginate(int $page, int $limit)
+    /**
+     * Paginate Query
+     * @param  int $page  page
+     * @param  int $limit data per page
+     * @return array data paginate
+     */
+    public function paginate(int $page, int $limit)
     {
         //count total custom query
         $total = count($this->fetchAll());
@@ -57,16 +57,27 @@ abstract class BaseModel
         // $number = (int) $page;
         $range = $limit * ($page - 1);
 
-        $data = $this->query->setFirstResult($range)->setMaxResults($limit);
+        if (!$this->query) {
+            $qb = $this->getBuilder();
+            $this->query = $qb->select($this->column)
+                              ->from($this->table);
+        } else {
+            $this->query->setFirstResult($range)->setMaxResults($limit);
+        }
+        
         $data = $this->fetchAll();
 
         $result = [
-        	'total_data'=> $total,
-        	'perpage'	=> $limit,
-        	'current'	=> $page,
-        	'total_page'=> $pages,
-        	'data'		=> $data,
+            'total_data'=> $total,
+            'perpage'   => $limit,
+            'current'   => $page,
+            'total_page'=> $pages,
+            'data'      => $data,
         ];
+
+        if (empty($result['data'])) {
+            return false;
+        }
 
         return $result;
     }
@@ -80,10 +91,10 @@ abstract class BaseModel
      */
     public function find($column, $value = null, $operator = '=')
     {
-    	$param = ':'.$column;
-    	$qb = $this->getBuilder();
-    	$this->query = $qb->select($this->column)
-    	   			 ->from($this->table);
+        $param = ':'.$column;
+        $qb = $this->getBuilder();
+        $this->query = $qb->select($this->column)
+                     ->from($this->table);
         if (is_array($column)) {
             foreach ($column as $key => $value) {
                 if (is_numeric($key) && is_array($value)) {
@@ -98,33 +109,41 @@ abstract class BaseModel
             $qb->where($column.$operator.$param)
                ->setParameter($param, $value);
         }
-    	return $this;
+        return $this;
     }
 
     public function fetchAll()
-	{
-		return $this->query->execute()->fetchAll();
-	}
+    {
+        return $this->query->execute()->fetchAll();
+    }
 
-	public function fetch()
-	{
-		return $this->query->execute()->fetch();
-	}
+    public function fetch()
+    {
+        return $this->query->execute()->fetch();
+    }
 
-	//find data with delete = 0
-	public function withoutDelete()
-	{
-		$this->query = $this->query->andWhere('deleted = 0');
+    //find data with delete = 0
+    public function withoutDelete()
+    {
+        $this->query = $this->query->andWhere('deleted = 0');
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * Create New Data
-	 * @param  array  $data column and value
-	 * @return int id rows
-	 */
-	public function create(array $data)
+    //find data with delete = 1
+    public function withDelete()
+    {
+        $this->query = $this->query->andWhere('deleted = 1');
+
+        return $this;
+    }
+
+    /**
+     * Create New Data
+     * @param  array  $data column and value
+     * @return int id rows
+     */
+    public function create(array $data)
     {
         $column = [];
         $paramData = [];
@@ -138,7 +157,7 @@ abstract class BaseModel
            ->setParameters($paramData)
            ->execute();
 
-        return (int)$this->db->lastInsertId();
+        return (int) $this->db->lastInsertId();
     }
 
     /**
@@ -150,9 +169,8 @@ abstract class BaseModel
      */
     public function update(array $data, $column, $value)
     {
-    	$columns = [];
+        $columns = [];
         $paramData = [];
-        $data[$column] = $value;
 
         $qb = $this->getBuilder();
         $qb->update($this->table);
@@ -163,6 +181,7 @@ abstract class BaseModel
             $qb->set($key, $columns[$key]);
 
         }
+        $paramData[$column] = $value;
         $qb->where( $column.'='. ':'.$column)
            ->setParameters($paramData)
            ->execute();
@@ -171,39 +190,39 @@ abstract class BaseModel
     //set deleted to 1
     public function softDelete($column, $value)
     {
-    	$param = ':'.$column;
+        $param = ':'.$column;
 
-    	$qb = $this->getBuilder();
-    	$qb->update($this->table)
-    	   ->set('deleted', 1)
-    	   ->where($column.'='. $param)
-    	   ->setParameter($param, $value)
-    	   ->execute();
+        $qb = $this->getBuilder();
+        $qb->update($this->table)
+           ->set('deleted', 1)
+           ->where($column.'='. $param)
+           ->setParameter($param, $value)
+           ->execute();
     }
 
     //delete from db
     public function hardDelete($column, $value)
     {
-    	$param = ':'.$column;
+        $param = ':'.$column;
 
-    	$qb = $this->getBuilder();
-    	$qb->delete($this->table)
-    	   ->where($column.'='. $param)
-    	   ->setParameter($param, $value)
-    	   ->execute();
+        $qb = $this->getBuilder();
+        $qb->delete($this->table)
+           ->where($column.'='. $param)
+           ->setParameter($param, $value)
+           ->execute();
     }
 
     //set deleted to 0
     public function restore($column, $value)
     {
-    	$param = ':'.$column;
+        $param = ':'.$column;
 
-    	$qb = $this->getBuilder();
-    	$qb->update($this->table)
-    	   ->set('deleted', 0)
-    	   ->where($column.'='. $param)
-    	   ->setParameter($param, $value)
-    	   ->execute();
+        $qb = $this->getBuilder();
+        $qb->update($this->table)
+           ->set('deleted', 0)
+           ->where($column.'='. $param)
+           ->setParameter($param, $value)
+           ->execute();
     }
 
     /**
@@ -253,7 +272,7 @@ abstract class BaseModel
 
         if ($check) {
             $this->update($data, 'id', $check['id']);
-            return $this->find('id', $check['id'])->fetch();  
+            return $this->find('id', $check['id'])->fetch();
         } else {
             return $this->create($data);
         }
@@ -262,9 +281,9 @@ abstract class BaseModel
 
     public function checkOrUpdate(array $data, $column, $value)
     {
-        foreach ($data as $key => $value) {
+        foreach ($data as $key => $values) {
             if (is_array($this->check) && in_array($key, $this->check)) {
-                $check = $this->find($key, $value)->fetch();
+                $check = $this->find($key, $values)->fetch();
                 if ($check)
                 {
                     return ucfirst($key);
@@ -272,12 +291,6 @@ abstract class BaseModel
             }
         }
         $this->update($data, $column, $value);
-    }
-
-    //find data with delete = 1
-    public function withDelete()
-    {
-        $this->query = $this->query->andWhere('deleted = 1');
-        return $this;
+        return $this->find($column, $value)->fetch();
     }
 }

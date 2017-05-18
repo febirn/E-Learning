@@ -11,12 +11,6 @@ class CoursesController extends \App\Controllers\BaseController
     {
         $token = $request->getHeader('Authorization')[0];
 
-        $validateUser = $this->validateUser($token);
-
-        if ($validateUser == false) {
-            return $this->responseDetail('You have not Authorized to edit this course', 401);
-        }
-
         $page = !$request->getQueryParam('page') ? 1 : $request->getQueryParam('page');
 
         $course = new \App\Models\Courses\Course;
@@ -89,6 +83,7 @@ class CoursesController extends \App\Controllers\BaseController
     public function getCourse(Request $request, Response $response, $args)
     {
         $token = $request->getHeader('Authorization')[0];
+
         $userToken = new \App\Models\Users\UserToken;
         $userId = $userToken->find('token', $token)->fetch()['user_id'];
 
@@ -123,7 +118,7 @@ class CoursesController extends \App\Controllers\BaseController
         foreach ($reqData['title'] as $titleKey => $value) {
             $title[$titleKey] = $value;
         }
-
+        
         $this->validator->rule('required', 'title.*.' . $titleKey);
         
         $array_temp = [];

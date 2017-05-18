@@ -28,7 +28,7 @@ abstract class BaseController
 	 * @param  array|null $meta     additional data
 	 * @return $this->response->withHeader('Content-type', 'application/json')->withJson($response, $response['status']);
 	 */
-	public function responseDetail($message, $status = 200, $data = null, array $meta = null)
+	protected function responseDetail($message, $status = 200, $data = null, array $meta = null)
 	{
 		$response = [
 			'status'	=> $status,
@@ -44,5 +44,18 @@ abstract class BaseController
 		}
 
 		return $this->response->withHeader('Content-type', 'application/json')->withJson($response, $response['status']);
+	}
+
+	protected function findToken()
+	{
+		$token = new \App\Models\Users\UserToken;
+		$getToken = $this->request->getHeader('HTTP_AUTHORIZATION')[0];
+		$findToken = $token->find('token', $getToken)->fetch();
+
+		if ($findToken) {
+			return $findToken;
+		}
+
+		return false;
 	}
 }

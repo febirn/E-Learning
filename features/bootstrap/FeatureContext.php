@@ -1,4 +1,5 @@
 <?php
+
 use Behat\Behat\Context\ClosuredContextInterface;
 use Behat\Behat\Context\TranslatedContextInterface;
 use Behat\Behat\Context\Context;
@@ -26,7 +27,9 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
     private $_request;
     protected $_response;
     public $_body;
-    protected $tokenContext;
+    protected $paramContext;
+    public $db;
+
     /**
      * Initializes context.
      *
@@ -37,146 +40,171 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
     public function __construct(array $parameters)
     {
         $this->_parameters = $parameters;
+
         $this->_client = new Client(['base_uri' => $this->_parameters['base_url']]);
     }
+
      /** @BeforeScenario */
     public function gatherContexts(BeforeScenarioScope $scope)
     {
         $environment = $scope->getEnvironment();
-    
-        $this->tokenContext = $environment->getContext('TokenContext');
+
+        $this->paramContext = $environment->getContext('ParamContext');
     }
-    /**
-     * @When I GET url :url
-     */
-    public function iGetUrl($url)
+
+    public function setDb()
     {
-        $headers = [
-            'Content-type'  => 'application/json',
-            'Authorization' => $this->tokenContext->token,
-        ];
-        $this->_response = $this->_client->request('GET', $url, ['headers' => $headers]);
+        $setting['url'] = 'mysql://root:root@db/elearning'; 
+        
+        $config = new \Doctrine\DBAL\Configuration();
+
+        $connect = \Doctrine\DBAL\DriverManager::getConnection($setting,
+        $config);
+
+        $this->db = $connect;
     }
-    /**
-     * @When I GET url :url in page :page
-     */
-    public function iGetUrlInPage($url, $page)
+
+    public function getBuilder()
     {
-        $headers = [
-            'Content-type'  => 'application/json',
-            'Authorization' => $this->tokenContext->token,
-        ];
-        $query = [
-            'page'  => $page,
-        ];
+        $this->setDb();
+        return $this->db->createQueryBuilder();
+    }
+
+    public function setOptions($query = null, $json = null)
+    {
         $options = [
-            'headers'   => $headers,
-            'query'     => $query,
+            'headers'   => [
+                'Content-Type'  => 'application/json',
+                'Authorization' => $this->paramContext->token,
+            ],
+            'query' => $query,
+            'json'  => $json,
         ];
-        $this->_response = $this->_client->request('GET', $url, $options);
+        return $options;
+
     }
+
     /**
-     * @When I POST url :url
+     * @When /^I "(?<method>[^"]*)" in "(?<url>[^"]*)"?(?:| by column "(?<column>[^"]*)")?(?:| and)?(?:| with param:)$/
      */
-    public function iPostUrl($url)
+    public function iToUrl($method, $url, $column = null, TableNode $param = null)
     {
-        $this->_request = [
-            'method'=> 'POST',
-            'url'   => $url,
-        ];
-    }
-    /**
-     * @When I PUT url :url with id :id
-     */
-    public function iPutUrl($url, $id)
-    {
-        $this->_request = [
-            'method'=> 'PUT',
-            'url'   => $url.'/'.$id,
-        ];
-    }
-    /**
-     * @When I Delete url :url with id :id
-     */
-    public function iDeleteUrl($url, $id)
-    {
-        $headers = [
-            'Content-type'  => 'application/json',
-            'Authorization' => $this->tokenContext->token,
-        ];
-        $this->_response = $this->_client->request('DELETE', $url.'/'.$id, ['headers' => $headers]);
-    }
-    /**
-     * @When I fill :name with :value
-     */
-    public function iFillWith($name, $value)
-    {
-        if ($value == 'random_username') {
-            $value = md5(openssl_random_pseudo_bytes(12));
-        } elseif ($value == 'random_email') {
-            $value = md5(openssl_random_pseudo_bytes(12)). '@gmail.com';
+        if ($method == "GET" || $method == "DELETE") {
+            $this->iShowData($method, $url, $column, $param);
+        } elseif ($method == "POST" || $method == "PUT") {
+            $this->iStoreData($method, $url, $column, $param);
         }
-        $this->_body[$name] = $value;
     }
+
+    public function iShowData($method, $url, $column = null ,TableNode $param = null)
+    {
+        if ($column != null) {
+            $url = $this->setArgument($url, $column);
+        }
+
+        if ($param !== null) {
+            $query = $this->setQuery($param);
+            $options = $this->setOptions($query);
+        } else {
+            $options = $this->setOptions();
+        }
+
+        $this->_response = $this->_client->request($method, $url, $options);
+
+    }
+
+    public function iStoreData($method, $url, $column = null, TableNode $param = null)
+    {
+        if ($column !== null) {
+            $url = $this->setArgument($url, $column);
+        }
+
+        if ($param !== null) {
+            $query = $this->setQuery($param);
+            $options = $this->setOptions($query);
+        } else {
+            $options = $this->setOptions();
+        }
+
+        return $this->setRequest($method, $url, $options);
+    }
+
+    public function setArgument($url, $args)
+    {
+        $link = explode('/', $url);
+        
+        if (count($link) > 1) {
+            $unlink = array_pop($link);
+        }
+        
+        $column = explode(',', $args);
+
+        foreach ($column as $key => $value) {
+            array_push($link, $this->paramContext->{$value});
+        }
+
+        if (count($link) > 2 && $unlink != null) {
+            array_push($link, $unlink);
+        }
+
+        return implode('/',$link);
+    }
+
+    public function setQuery(TableNode $query)
+    {
+        foreach ($query as $key => $value) {
+            $param = $value;
+        }
+        return $param;
+    }
+
+    public function setRequest($method, $url, $options = null)
+    {
+        $this->_request = [
+            'method'    => $method,
+            'url'       => $url,
+            'options'   => $options,
+        ];
+    }
+
+    /**
+     * @When I fill post with this:
+     */
+    public function iFillWith(TableNode $table)
+    {
+        $t = $table->getHash();
+
+        foreach ($t as $keyT => $valueT) {
+            foreach ($valueT as $keyValueT => $valueValueT) {
+                if ($valueValueT != "") {
+                    $this->_body[$keyValueT][] = $valueValueT;
+                }
+            }
+        }       
+        
+        foreach ($this->_body as $key => $value) {
+            if (count($this->_body[$key]) < 2) {
+                unset($this->_body[$key][0]);
+                $this->_body[$key] = $value[0];
+            }
+        }
+    }
+
     /**
      * @Then I store it
      */
     public function iStoreIt()
     {
-        try {
-            $headers = [
-                'Content-Type'  => 'application/json',
-                'Authorization' => $this->tokenContext->token,
-            ];
-            $body = json_encode($this->_body);
+        $query = $this->_request['options']['query'];
+        $json = $this->_body;
+        $options = $this->setOptions($query, $json);
 
+        try {
             $this->_response = $this->_client
-                                    ->request($this->_request['method'], $this->_request['url'], ['headers' => $headers, 'json' => $this->_body]);
+                                    ->request($this->_request['method'], $this->_request['url'], $options);
         } catch (Exception $exception) {
             $this->getException($exception);
         }
-    }
-    /**
-     * @Then I see the result
-     */
-    public function iSeeTheResult()
-    {
-        echo $this->_response->getBody();
-    }
-    /**
-     * @When I GET url :url by :param with :value
-     */
-    public function getBy($url, $param, $value)
-    {
-        $headers = [
-            'Content-type'  => 'application/json',
-            'Authorization' => $this->tokenContext->token,
-        ];
-        $query = [
-            $param  => $value,
-        ];
-        $options = [
-            'headers'   => $headers,
-            'query'     => $query,
-        ];
-        $this->_response = $this->_client->request('GET', $url, $options);
-    }
-
-    /**
-     * @seting database connect
-     */
-    public function dbConnect()
-    {
-        $file = json_decode(file_get_contents("config.json", 'r'), true);
-
-        $username = $file['user'];
-        $password = $file['pass'];
-        $hostname = 'mysql:host=' . $file['host'] ;
-        $database = 'dbname=' . $file['db'];
-        $port     = 'port=' . $file['port'];
-
-        $dbh = new PDO($hostname.';'.$database.';'.$port, $username, $password);
-        return $dbh;
     }
 
     /**
@@ -186,30 +214,33 @@ class FeatureContext extends MinkContext implements Context, SnippetAcceptingCon
     {
         $getResponse = $exception->getResponse();
 
-        $data =  json_decode($getResponse->getBody()->getContents());
- 
+        $data = json_decode($getResponse->getBody()->getContents());
+
         if (!($data->status == 200)) {
             if (!empty($data->data)) {
                 throw new Exception($data->data);
             } else {
-                throw new Exception($data->message);
+                throw new Exception($data);
             }
         }
     }
 
     /**
-     * @When I active user with email :email
+     * @Given information about :table by :column :value 
      */
-    public function iActiveUserWithEmail($email)
+    public function getData($table, $column, $value)
     {
-        $this->dbConnect()->query("UPDATE users SET is_active = 1 where email = '$email'");
-    }
+        $qb = $this->getBuilder();
 
-     /**
-     * @When I delete user with email :email
-     */
-    public function iDeleteUserWithEmail($email)
-    {
-        $this->dbConnect()->query("DELETE FROM users where email = '$email'");
+        $result = $qb->select('*')
+                     ->from($table)
+                     ->where($column. ' = :'.$column)
+                     ->setParameter(':'.$column, $value)
+                     ->execute()
+                     ->fetch();
+
+        foreach ($result as $key => $value) {
+            $this->paramContext->{$key} = $value;
+        }
     }
 }

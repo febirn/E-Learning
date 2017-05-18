@@ -2,7 +2,7 @@
 
 use Phinx\Migration\AbstractMigration;
 
-class CreateSampleTable extends AbstractMigration
+class CreateTablePasswordReset extends AbstractMigration
 {
     /**
      * Change Method.
@@ -27,8 +27,12 @@ class CreateSampleTable extends AbstractMigration
      */
     public function change()
     {
-        $test = $this->table('test');
-        $test->addColumn('test', 'string')
-             ->create();
+        $table = $this->table('password_reset');
+        $table->addColumn('user_id', 'integer')
+              ->addColumn('token', 'string')
+              ->addColumn('create_at', 'timestamp', ['default' => 'CURRENT_TIMESTAMP'])
+              ->addForeignKey('user_id', 'users', 'id', ['update' => 'NO_ACTION', 'delete' => 'CASCADE'])
+              ->addIndex('token')
+              ->create();
     }
 }
