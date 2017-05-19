@@ -5,3 +5,4 @@ composer.lock
 mysql/
 behat.yml
 public/upload/images/*
+!public/upload/images/default_user.png
