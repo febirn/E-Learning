@@ -43,7 +43,7 @@ return [
 	'guzzle'	=> [
 		'base_uri' => 'http://172.17.0.1:8080/public/',
 		'headers'  => [
-
+			'Authorization'	=> $_SESSION['login']['meta']['token']['token'],
 		],
 	],
 ];

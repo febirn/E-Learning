@@ -20,7 +20,7 @@ Feature: Users
     Scenario: Update Profile
     	Given token with username "testbehat"
         Given information about "users" by "username" "testbehat"
-    	When I "PUT" in "api/profile/edit" by column "id"
+    	When I "POST" in "api/profile/edit" by column "id"
     	And I fill post with this:
     	| email               | name            |
     	| testbehat@gmail.com | Test Behat Edit |

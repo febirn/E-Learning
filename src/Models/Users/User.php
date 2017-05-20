@@ -25,10 +25,10 @@ class User extends \App\Models\BaseModel
     public function resetPassword(array $data, $column, $value)
     {
         $data = [
-            'password' => password_hash($data['password_hash'], PASSWORD_DEFAULT),
+            'password' => password_hash($data['password'], PASSWORD_DEFAULT),
         ];
 
-        return $this->updateOrCreate($data, $column, $value);
+        return $this->update($data, $column, $value);
     }
 
     public function updateProfile($data, $id, $photo = null)

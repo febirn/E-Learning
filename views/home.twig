@@ -1,0 +1,64 @@
+{% extends 'template.twig' %}
+
+{% block title %}E-Learning{% endblock %}
+
+{% block css %}
+	<style>
+	    .item{
+	        font-size: .85em;
+	        color: #9f9f9f;
+	    }
+    </style>
+{% endblock %}
+
+{% block body %}
+	<body class="hold-transition skin-blue layout-top-nav">
+		<div class="wrapper">
+			<header class="main-header">
+				{% include 'partials/menu_home.twig'%}
+			</header>
+		</div>
+		{% include 'templates/flash/flash.twig'%}
+		<div class="content-wrapper">
+			<div class="container-fluid">
+				<section class="content-header">
+                    <h1 class="text-center">
+                        Latest Course
+                    </h1>
+                </section>
+				<section class="content">
+					<div class="row">
+						<div class="col-lg-4">
+							<div class="box box-default">
+								<div class="box-header with-border">
+									<h3 class="box-title">
+										<a href="#">
+											<strong>Build a URL shortener</strong>
+										</a>
+									</h3>
+								</div>
+								<div class="box-body">
+									Wait, URL shorteners are boring right? Nope. We're building a fully tested Lumen API, Vue.js client and implementing 301 redirects with Node.js and Express.
+						            <br><br>
+						            <button type="button" class="btn btn-sm btn-default disabled">Slim</button>
+						            <button type="button" class="btn btn-sm btn-default disabled">Redis</button>
+						            <br><br>
+						            <div>
+						                <div class="col-sm-4">
+						                	<i class="fa fa-tasks item"> 16 parts</i>
+						                </div>
+						                <div class="col-sm-4">
+                							<p class="item">6 days ago</p>
+              							</div>
+						            </div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+		</div>
+	</body>
+{% endblock %}
+
+{% block script %}{% endblock %}

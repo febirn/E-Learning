@@ -1,0 +1,45 @@
+{% extends 'template.twig' %}
+
+{% block title %}E-Learning - Upgrade User{% endblock %}
+
+{% block body %}
+    <body class="hold-transition register-page">
+        <div class="register-box">
+            <div class="register-logo">
+                <a href="{{ path_for('web.home') }}"><b>E</b>-Learning</a>
+            </div>
+            <div class="register-box-body">
+                <p class="login-box-msg">Upgrade Your Membership</p>
+                {% include 'templates/flash/flash.twig' %}
+                <form method="post">
+                    <select name="subs" class="form-control">
+                        {% for data in data %}
+                            <option value="{{data.name}}">{{data.name}} | ${{data.price}}</option>
+                        {% endfor %}
+                    </select>
+                    <h3>Payment</h3>
+                    <hr>
+                    <div id="payment-form">
+                        
+                    </div>
+                    <button class="btn btn-primary btn-block btn-flat">Upgrade</button>
+                </form>
+            </div>
+        </div>
+    </body>
+{% endblock %}
+
+{% block script %}
+    <script src="https://js.braintreegateway.com/js/braintree-2.32.0.min.js"></script>
+    <script>
+        $.ajax({
+            url: '{{path_for('braintree.token')}}',
+            type: 'get',
+            dataType: 'json'
+        }).success(function (data) {
+            braintree.setup(data.token, 'dropin', {
+                container: 'payment-form'
+            })
+        });
+    </script>
+{% endblock %}

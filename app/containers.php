@@ -35,7 +35,23 @@ $container['view'] = function (Container $container) {
 
 	$view->getEnvironment()->addGlobal('flash', $container->flash);
 
-	$view->getEnvironment()->addGlobal('baseUrl', 'localhost:8080');
+	$view->getEnvironment()->addGlobal('baseUrl', 'http://localhost:8080');
+
+	if (isset($_SESSION['login'])) {
+        $view->getEnvironment()->addGlobal('login', $_SESSION['login']);
+    }
+
+    if (isset($_SESSION['errors'])) {
+        $view->getEnvironment()->addGlobal('errors', $_SESSION['errors']);
+        
+        unset($_SESSION['errors']);
+    }
+
+    if ($_SESSION['old']) {
+		$view->getEnvironment()->addGlobal('old', $_SESSION['old']);
+		
+		unset($_SESSION['old']);
+	}
 
 	return $view;
 };
@@ -74,3 +90,8 @@ $container['testing'] = function (Container $container) {
 	$setting = $container->get('settings')['guzzle'];
 	return new Client(['base_uri' => $setting['base_uri'], 'headers' => $setting['headers']]);
 };
+
+Braintree_Configuration::environment('sandbox');
+Braintree_Configuration::merchantId('wvmyjffcrxjxzzdk');
+Braintree_Configuration::publicKey('xyjr9fnf93wjs2x5');
+Braintree_Configuration::privateKey('7d1425b4e9868833641a7981e18bba70');

@@ -1,0 +1,52 @@
+{% extends 'users/app.twig' %}
+
+{% block title %} E-Learning-Overview {% endblock %}
+
+{% block css %}
+    <style>
+        .item{
+          font-size: .85em;
+          color: #9f9f9f;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+     {% include 'users/partials/sidebar_account.twig' %}
+      <div class="col-lg-9">
+        <h3>Overview</h3>
+        <div class="well"> 
+          <h3>Account details</h3>
+          <table class="table">
+            <tr>
+              <th width="20%">Username</th>
+              <td>: {{user.username}}</td>
+            </tr>
+            <tr>
+              <th width="20%">Name</th>
+              <td>: {{user.name}}</td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td>: {{user.email}}</td>
+            </tr>
+            <tr>
+              <th>Phone</th>
+              <td>: {% if user.phone %}{{user.phone}}{% else %}
+                  -{% endif %}</td>
+            </tr>
+            <tr>
+              <th>Type Account</th>
+              <td>: {% if login.meta.is_premium == 0 %}Free {% else %}
+                  Premium{% endif %}</td>
+            </tr>
+            <tr>
+              <th>Date Created</th>
+              <td>: {{user.create_at|date('D, F d Y')}}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+{% endblock %}

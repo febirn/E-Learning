@@ -1,0 +1,104 @@
+{% extends 'users/app.twig' %}
+
+{% block title %} E-Learning-Profile {% endblock %}
+
+{% block css %} 
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-formhelpers/2.3.0/css/bootstrap-formhelpers.min.css">
+    <style>
+        .position-relative {
+            position: relative !important;
+        }
+        .manual-file-chooser {
+            position: absolute;
+            width: 240px;
+            padding: 5px;
+            top: 0;
+            left: 0;
+            margin-left: -80px;
+            opacity: 0.0001;
+        }
+        .width-full {
+            width: 100% !important;
+        }
+        .height-full {
+            height: 100% !important;
+        }
+        .ml-0 {
+            margin-left: 0 !important;
+        }
+        .mt-3 {
+            margin-top: 16px !important;
+        }
+        .image_preview{
+            display: inline-block;
+            width: 100%;
+            height: 220px;
+            border-radius: 5%;
+            background-repeat: no-repeat;
+            border: 4px solid #FFF;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+{% include 'users/partials/sidebar_account.twig' %}
+    <div class="col-lg-9">
+        <h3>Profile</h3>
+        {% include 'templates/flash/flash.twig' %}
+        <div class="box box-primary"> 
+            <form id="form" method="post" action="" enctype="multipart/form-data">
+            <div class="box-body row">
+                <div class="col-xs-9">
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone:</label>
+                        <input type="text" class="input-medium bfh-phone form-control" id="phone" data-format="+62 (ddd) dddd-dddd" name="phone" value="{{ user.phone }}">
+                    </div>
+                <button type="submit" class="btn btn-default">Update</button>
+                </div>
+                <div class="col-xs-3">
+                    <img src="{{ base_url() }}/upload/images/{{ user.photo }}" alt="{{ user.photo }}" class="image_preview" id="image">
+                    <label class="button-change-avatar mt-3 position-relative width-full btn btn-default">
+                        Upload new picture
+                        <input type="file" id="file" name="photo" class="manual-file-chooser height-full width-full ml-0">
+                    </label>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-formhelpers/2.3.0/js/bootstrap-formhelpers.min.js"></script>
+
+    <script>
+    $(document).ready(function (e) {
+        $(function() {
+            $("#file").change(function() {
+                var file = this.files[0];
+                var imagefile = file.type;
+                var match= ["image/jpeg","image/png","image/jpg", "image/gif"];
+                if((imagefile==match[0]) || (imagefile==match[1]) || (imagefile==match[2]) || (imagefile==match[3])) {
+                    var reader = new FileReader();
+                    reader.onload = imageIsLoaded;
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        });
+        function imageIsLoaded(e) {
+            $('#image').attr('src', e.target.result);
+        };
+    });
+    </script>
+{% endblock %}

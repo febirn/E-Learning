@@ -1,0 +1,21 @@
+{% extends 'template.twig' %}
+
+{% block body %}
+    <body class="hold-transition skin-blue-light sidebar-collapse sidebar-mini">
+    	<div class="wrapper">
+            <header class="main-header">
+                {% include 'users/partials/menu.twig' %}
+            </header>
+    		<aside class="main-sidebar">
+	    		<section class="sidebar">
+	                {% include 'users/partials/sidebar.twig'%}
+	            </section>
+    		</aside>
+    		<div class="content-wrapper">
+            <section class="content">
+                {% block content %} {% endblock %}
+            </section>
+        </div>
+    	</div>
+    </body
+{% endblock %}

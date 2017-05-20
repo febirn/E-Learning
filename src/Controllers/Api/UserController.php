@@ -80,7 +80,7 @@ class UserController extends \App\Controllers\BaseController
 
         if (empty($login)) {
             $data = $this->responseDetail("Error", 401, "Username Not Registered");
-        } else {
+        } elseif(!empty($login)) {
             $check = password_verify($request->getParsedBody()['password'], $login['password']);
 
             if ($check) {
@@ -256,7 +256,8 @@ class UserController extends \App\Controllers\BaseController
             }
 
             if ($request->getUploadedFiles()) {
-                $file = new \Upload\File('photo', $this->upload);
+                $upload = new \Upload\Storage\FileSystem('upload/images');
+                $file = new \Upload\File('photo', $upload);
 
                 $file->setName(uniqid());
 
@@ -329,7 +330,10 @@ class UserController extends \App\Controllers\BaseController
 
         if ($this->validator->validate()) {
             if (password_verify($request->getParam('old_password'), $user['password'])) {
-                $update = ['password' => $request->getParam('new_password')];
+                $update = [
+                    'password' => password_hash($request->getParam('new_password'), PASSWORD_DEFAULT),
+                ];
+
                 $users->update($update, 'id', $user['id']);
 
                 return $this->responseDetail("Change password success", 200);
@@ -351,5 +355,43 @@ class UserController extends \App\Controllers\BaseController
         }
 
         return $this->responseDetail("Data Available", 200, $findUser);
+    }
+
+    public function getBuyPremium(Request $request, Response $response)
+    {
+        $subs = new \App\Models\Subscribes\Subscriptions;
+        $find = $subs->getAll()->fetchAll();
+
+        return $this->responseDetail("Data Available", 200, $find);
+    }
+
+    public function postBuyPremium(Request $request, Response $response)
+    {
+        $token = $this->findToken();
+
+        $typeSub = $request->getParam('subs');
+        $subs = new \App\Models\Subscribes\Subscriptions;
+        $findSubs = $subs->find('name', $typeSub)->fetch();
+
+        if (!$request->getParam('payment_method_nonce')) {
+            return $this->responseDetail("Something is Wrong", 400);
+        }
+
+        $payments = new \App\Extensions\Payments\BrainTreePayment;
+        $payment = $payments->payment($findSubs['price'], $request->getParam('payment_method_nonce'));
+
+        if (!$payment->success) {
+            $payments->recordPayment($token['user_id'], $findSubs['id'], 1);
+
+            return $this->responseDetail("Payment Failed", 400);
+        }
+
+        $payments->recordPayment($token['user_id'], $findSubs['id'], 0, $payment->transaction->id);
+
+        $premi = new \App\Models\Users\PremiumUser;
+        
+        $premi->setPremium($token['user_id'], $findSubs['expired_time']);
+
+        return $this->responseDetail("Congrats!, You are Premium Member Now", 201);
     }
 }
