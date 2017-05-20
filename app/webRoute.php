@@ -55,7 +55,7 @@ $app->group('', function() use($app,$container) {
 
 			$app->put('/{slug}/restore', 'App\Controllers\Web\ArticleController:softDelete')->setName('web.put.restore.article');
 		});
-	})->add(new \App\Middlewares\Web\AdminMiddleware($container));
+	});//->add(new \App\Middlewares\Web\AdminMiddleware($container));
 
 	$app->group('/article', function() use($app, $container) {
 		$app->get('', 'App\Controllers\Web\ArticleController:showForUser')->setName('web.article.show.for.user');

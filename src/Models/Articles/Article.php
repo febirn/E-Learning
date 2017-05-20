@@ -66,7 +66,7 @@ class Article extends \App\Models\BaseModel
            ->from('categories', 'c')
            ->innerJoin('c', 'article_category', 'ac', 'c.id = ac.category_id')
            ->innerJoin('ac', 'articles', 'a', 'ac.article_id = a.id')
-           ->where('a.id = :id AND deleted = 0')
+           ->where('a.id = :id AND c.deleted = 0')
            ->setParameter(':id', $article['id'])
            ->execute()
            ->fetchAll();
@@ -241,7 +241,7 @@ class Article extends \App\Models\BaseModel
         return $article;
     }
 
-    public function search($search, , int $page, int $limit)
+    public function search($search, int $page, int $limit)
     {
         $qbArticle = $this->getBuilder();
 
