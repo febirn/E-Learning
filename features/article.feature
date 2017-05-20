@@ -25,9 +25,9 @@ Feature: Article
         Given token with username "testbehat"
         When I "POST" in "api/admin/article/create"
         And I fill post with this:
-        | title       | category | content      |
-        | testarticle | test     | Test Article |
-        |             | article  |              |
+        | title       | category | content      | is_publish |
+        | testarticle | test     | Test Article | 1          |
+        |             | article  |              |            |
         Then I store it
 
     Scenario: Edit Article
@@ -35,10 +35,10 @@ Feature: Article
         Given information about "articles" by "title" "testarticle"
         When I "PUT" in "api/admin/article/edit" by column "title_slug"
         And I fill post with this:
-        | title           | category | content           |
-        | testarticleedit | test     | Test Edit Article |
-        |                 | edit     |                   |
-        |                 | article  |                   |
+        | title           | category | content           | is_publish |
+        | testarticleedit | test     | Test Edit Article | 1          |
+        |                 | edit     |                   |            |
+        |                 | article  |                   |            |
 
     Scenario: Show All Article
         Given token with username "testbehat"
@@ -47,7 +47,7 @@ Feature: Article
     Scenario: Soft Delete Article
         Given token with username "testbehat"
         Given information about "articles" by "title" "testarticle"
-        When I "POST" in "api/admin/article/soft_delete" by column "title_slug"
+        When I "PUT" in "api/admin/article/soft_delete" by column "title_slug"
         Then I store it
 
     Scenario: Show Trash Article
