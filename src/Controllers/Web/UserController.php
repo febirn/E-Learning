@@ -104,7 +104,7 @@ class UserController extends \App\Controllers\BaseController
                     'data'  => $contents['data'],
                     'meta'  => $contents['meta'],
                 ];
-                
+
                 $url = $_SESSION['url'] ? $_SESSION['url'] : $this->router->pathFor('web.home');
 
                 return $response->withRedirect($url);
@@ -140,7 +140,7 @@ class UserController extends \App\Controllers\BaseController
 
         try {
             $reset = $this->testing->request('POST', $this->router->pathFor('api.user.password.reset'), ['json' => $body]);
-            
+
             if ($reset->getStatusCode() == 201) {
                 $this->flash->addMessage('success', 'Check your mail for reset password');
 
@@ -197,7 +197,7 @@ class UserController extends \App\Controllers\BaseController
             if ($reNewPassword->getStatusCode() == 200) {
                 $this->flash->addMessage('success', 'Password Has Been Change');
 
-                return $this->response->withRedirect($this->router->pathFor('web.user.login')); 
+                return $this->response->withRedirect($this->router->pathFor('web.user.login'));
             }
         } catch (GuzzleException $e) {
             $error = json_decode($e->getResponse()->getBody()->getContents(), true);
@@ -210,7 +210,7 @@ class UserController extends \App\Controllers\BaseController
                 $errorArr = explode(' ', $error);
                 $_SESSION['errors'][lcfirst($errorArr[0])][] = $error;
             }
-            return $this->response->withRedirect($this->router->pathFor('web.user.renew.password')."?token=$token"); 
+            return $this->response->withRedirect($this->router->pathFor('web.user.renew.password')."?token=$token");
         }
     }
 
@@ -218,8 +218,8 @@ class UserController extends \App\Controllers\BaseController
     {
         $data = $_SESSION['login'];
 
-        $client = $this->testing->request('GET', 
-                  $this->router->pathFor('api.get.edit.profile.user', 
+        $client = $this->testing->request('GET',
+                  $this->router->pathFor('api.get.edit.profile.user',
                   ['id' => $data['data']['id']]));
 
         return $this->view->render($response, 'users/edit_profile.twig', ['user' => $data['data']]);
@@ -230,11 +230,11 @@ class UserController extends \App\Controllers\BaseController
         $id = $_SESSION['login']['data']['id'];
         $reqData = $request->getParams();
         $reqPhoto = $request->getUploadedFiles()['photo'];
-        
+
         $imageName = $reqPhoto->getClientFilename();
         $imageMimeType = $reqPhoto->getClientMediaType();
 
-        if (!($imageName == null)) {   
+        if (!($imageName == null)) {
             $data[] = [
                 'name' => "photo",
                 'filename' => $imageName,
@@ -256,7 +256,7 @@ class UserController extends \App\Controllers\BaseController
             $this->flash->addMessage('success', 'Data has bean Update');
 
             $contents = json_decode($client->getBody()->getContents(), true);
-            
+
             $_SESSION['login'] = [
                 'data'  => $contents['data'],
                 'meta'  => $_SESSION['login']['meta'],
@@ -272,7 +272,7 @@ class UserController extends \App\Controllers\BaseController
             return $response->withRedirect($this->router->pathFor(
                    'web.user.edit_profile'));
         }
-    
+
     }
 
     public function getChangePassword(Request $request, Response $response)
@@ -294,7 +294,7 @@ class UserController extends \App\Controllers\BaseController
            return $response->withRedirect($this->router->pathFor('web.user.login'));
         } catch (GuzzleException $e) {
             $error = json_decode($e->getResponse()->getBody()->getContents(),true);
-            
+
             if ($error['data']) {
                 foreach ($error['data'] as $key => $value) {
                     $_SESSION['errors'][lcfirst($key)][] = $value[0];
@@ -330,10 +330,10 @@ class UserController extends \App\Controllers\BaseController
 
     public function getPremium(Request $request, Response $response)
     {
-        // $client = $this->testing->request('GET', $this->router->pathFor('api.user.premium'));
-        // $contents = json_decode($client->getBody()->getContents(), true);
+        $client = $this->testing->request('GET', $this->router->pathFor('api.user.premium'));
+        $contents = json_decode($client->getBody()->getContents(), true);
 
-        return $this->view->render($response, 'users/upgrade_user.twig');
+        return $this->view->render($response, 'users/upgrade_user.twig', ['data' => $contents['data']]);
     }
 
     public function postPremium(Request $request, Response $response)

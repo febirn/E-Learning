@@ -1,0 +1,82 @@
+{% extends 'admin/dashboard.twig' %}
+
+{% block title %}E-Learning - My Article{% endblock %}
+
+{% block content %}
+<div class="box-body">
+	{% if article == false %}
+		<div class="jumbotron">
+			<h1>You not have Articles</h1>
+			<a href="{{path_for('web.get.create.article')}}">
+				<button>Create Article</button>
+			</a>
+		</div>
+	{% else %}
+	<div id="article.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+		<a href="{{path_for('web.get.create.article')}}">
+			<button class="btn btn-primary pull-right">Create New Article</button>
+		</a>
+		<table id="article.datatable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+			<thead>
+				<tr>
+					<th>Title</th>
+					<th>Category</th>
+					<th>Status</th>
+					<th>Created at</th>
+                    <th></th>
+				</tr>
+			</thead>
+
+			<tbody>
+			{% for article in article %}
+    			<tr>
+					<td>{{article.title}}</td>
+					<td>{{article.category|join(',')}}</td>
+					<td>{{article.is_publish == 0 ? '<i>Draft</i>' : '<i>Published</i>'}}</td>
+					<td>{{article.create_at}}</td>
+					<td>
+                        {% if article.is_publish == 1 %}
+                            <a href="{{path_for('web.article.slug', {slug : article.title_slug})}}" class="btn btn-primary">
+                                <i class="fa fa-eye" aria-hidden="true"></i>
+                            </a>
+                        {% endif %}
+
+                        <a href="{{path_for('web.get.update.article',{slug : article.title_slug})}}" class="btn btn-info">
+                            <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                        </a>
+
+                        <button class="btn btn-danger dropdown-toggle" type="button" data-toggle="dropdown">
+                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                        </button>
+
+                        <ul class="dropdown-menu">
+                        	{% if article.deleted == 0 %}
+                        		<form action="{{path_for('web.put.soft.delete.article', {slug: article.title_slug})}}">
+                        			<li><button>Set To Trash</button></li>
+                        		</form>
+                        	{% else %}
+                        	    <form action="{{path_for('web.put.restore.article', {slug: article.title_slug})}}">
+                        			<li><button>Restore</button></li>
+                        		</form>
+                            {% endif %}
+                                <form action="{{path_for('web.delete.hard.delete.article', {slug: article.title_slug})}}">
+                            		<li><button>Delete</button></li>
+                            	</form>
+                        </ul>
+					</td>
+    			</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+	$(document).ready(function() {
+    	$('#article.datatable').DataTable();
+	});
+</script>
+{% endblock %}

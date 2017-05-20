@@ -113,22 +113,22 @@ abstract class BaseModel
     }
 
     public function fetchAll()
-    {
-        return $this->query->execute()->fetchAll();
-    }
+	{
+		return $this->query->execute()->fetchAll();
+	}
 
-    public function fetch()
-    {
-        return $this->query->execute()->fetch();
-    }
+	public function fetch()
+	{
+		return $this->query->execute()->fetch();
+	}
 
-    //find data with delete = 0
-    public function withoutDelete()
-    {
-        $this->query = $this->query->andWhere('deleted = 0');
+	//find data with delete = 0
+	public function withoutDelete()
+	{
+		$this->query = $this->query->andWhere('deleted = 0');
 
-        return $this;
-    }
+		return $this;
+	}
 
     //find data with delete = 1
     public function withDelete()
@@ -138,12 +138,12 @@ abstract class BaseModel
         return $this;
     }
 
-    /**
-     * Create New Data
-     * @param  array  $data column and value
-     * @return int id rows
-     */
-    public function create(array $data)
+	/**
+	 * Create New Data
+	 * @param  array  $data column and value
+	 * @return int id rows
+	 */
+	public function create(array $data)
     {
         $column = [];
         $paramData = [];

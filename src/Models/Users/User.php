@@ -49,6 +49,18 @@ class User extends \App\Models\BaseModel
 
         return $this->checkOrUpdate($data, 'id', $id);
     }
+
+    public function joinUserAndRole()
+    {
+        $qb = $this->getBuilder();
+        $result = $qb->select('u.id, u.name, u.username, u.email')
+            ->from($this->table, 'u')
+            ->join('u', 'user_role', 'ur', 'u.id=ur.user_id')
+            ->where('role_id = 3')
+            ->execute();
+
+        return $result->fetchAll();
+    }
 }
 
 ?>

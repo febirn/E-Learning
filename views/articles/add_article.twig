@@ -1,0 +1,46 @@
+{% extends 'users/app.twig' %}
+
+{% block title %} E-Learning- Create Article {% endblock %}
+
+{% block css %}
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.3/summernote.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    {% include 'templates/flash/flash.twig' %}
+    <form method="post">
+        <div class="form-group has-feedback {{ errors.title ? 'has-error': '' }}">
+            <label for="title">Title:</label>
+            <input type="text" class="form-control" name="title">
+            {% if errors.title %}
+                <span class="help-block">{{ errors.title | first }}</span>
+            {% endif %}
+        </div>
+        <div class="form-group has-feedback {{ errors.title ? 'has-error': '' }}">
+            <label for="tag">Tag:</label>
+            <select class="form-control" id="category" name="category[]" multiple="multiple">
+                {% if category %}
+                    {% for category in category %}
+                        <option value="{{category.name}}">{{category.name}}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+            {% if errors.category %}
+                <span class="help-block">{{ errors.category | first }}</span>
+            {% endif %}
+        </div>
+        <div class="form-group has-feedback {{ errors.content ? 'has-error': '' }}">
+            <textarea name="content" id="summernote"></textarea>
+            {% if errors.content %}
+                <span class="help-block">{{ errors.content | first }}</span>
+            {% endif %}
+        </div>
+        <button name="is_publish" value="1">Publish</button>
+        <button name="is_publish" value="0">Save as Draft</button>
+    </form>
+
+{% endblock %}
+
+{% block script %}
+{% include 'articles/partials/script.twig' %}
+{% endblock %}
