@@ -4,3 +4,4 @@ app/settings.php
 composer.lock
 mysql/
 behat.yml
+public/upload/video

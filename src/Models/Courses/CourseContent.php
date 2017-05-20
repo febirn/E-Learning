@@ -23,6 +23,24 @@ class CourseContent extends \App\Models\BaseModel
         
         return $addCourseContent;
     }
+
+    public function edit($data, $course_content_id)
+    {
+        $edit = [
+            'title'       =>  $data['title'],
+            'title_slug'  =>  preg_replace('/[^A-Za-z0-9-]+/', '-', strtolower($data['title'])),
+            'url_video'   =>  $data['url_video'],
+        ];
+
+        $find = $this->find('id', $course_content_id)->withoutDelete()->fetch();
+        
+        if ($find['title'] == $edit['title']) {
+            unset($edit['title']);
+            unset($edit['title_slug']);
+        }
+
+        return $this->checkOrUpdate($edit, 'id', $find['id']);
+    }
 }
 
 ?>
