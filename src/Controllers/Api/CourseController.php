@@ -5,7 +5,7 @@ namespace App\Controllers\Api;
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
-class CoursesController extends \App\Controllers\BaseController
+class CourseController extends \App\Controllers\BaseController
 {
     public function showAll(Request $request, Response $response)
     {
