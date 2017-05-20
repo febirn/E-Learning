@@ -14,39 +14,62 @@
 {% block content %}
 <div class="row">
     <div class="col-lg-9">
-        {% if !article %}
+        {% if article.content == false %}
             <div class="jumbotron">
                 <h3>Sorry, We haven't Article yet</h3>
             </div>
         {% else %}
-            {% for article in article.content %}
+            {% for data in article.content.data %}
                 <div class="col-lg-12">
                     <div class="well">
-                        <h3><a href="{{path_for('web.article.slug', {slug: article.slug})}}">{{article.title}}</a></h3>
+                        <h3><a href="{{path_for('web.article.slug', {slug: data.slug})}}">{{data.title}}</a></h3>
                         <p>
-                            {{article.content|raw|slice(0, 300)}}
+                            {{data.content|raw|slice(0, 300)}}
                         </p>
                         <br>
-                        {% for category in article.category %}
+                        {% for category in data.category %}
                             <label for="{{category}}" class="label label-primary">{{category}}</label>
                         {% endfor %}
                         <hr>
                         <ul class="list-inline">
-                            <li><i class="fa fa-user"><b>{{article.username}}</b></i></li>
-                            <li><p class="item">{{article.publish_at|date('D, F d Y')}}</p></li>
+                            <li><i class="fa fa-user"><b>{{data.username}}</b></i></li>
+                            <li><p class="item">{{data.publish_at|date('D, F d Y')}}</p></li>
                         </ul>
                     </div>
-                </div>  
+                </div>
             {% endfor %}
-            
+            <nav aria-label="...">
+              <ul class="pager">
+                <li class="previous">
+                  {% if article.content.current ==1 %}
+                    <a disabled>
+                  {% else %}
+                    <a href="{{path_for('web.article.show.for.user')}}?page={{article.content.current - 1}}">
+                  {% endif %}
+                        <span aria-hidden="true">&larr;</span>
+                    Prev
+                    </a>
+                </li>
+                <li class="next">
+                  {% if article.content.current == article.content.total_page %}
+                    <a disabled>
+                  {% else %}
+                    <a href="{{path_for('web.article.show.for.user')}}?page={{article.content.current + 1}}">
+                  {% endif %}
+                      Next <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
         {% endif %}
+    </div>
     <div class="col-lg-3">
         <div class="row">
             <div class="col-lg-12">
                 <div class="well">
                 <form method="get" action="{{path_for('web.article.search')}}">
                     <div class="form-group">
-                        <input type="text" name="search" class="form-control" id="navbar-search-input" placeholder="Search">
+                        <input type="text" name="query" class="form-control" id="navbar-search-input" placeholder="Search">
                     </div>
                 </form>
                 </div>
@@ -54,8 +77,9 @@
             <div class="col-lg-12">
                 <ul class="list-group">
                     <li class="list-group-item"><b>By subject</b></li>
+                    <li class="list-group-item"><a href="">All</a></li>
                     {% for category in article.category %}
-                        <li class="list-group-item"><a href="">{{category.name}}</a></li> 
+                        <li class="list-group-item"><a href="{{path_for('web.article.category', {category: category.name})}}">{{category.name}}</a></li>
                     {% endfor %}
                 </ul>
             </div>

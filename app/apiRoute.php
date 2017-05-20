@@ -15,13 +15,11 @@ $app->group('/api', function() use ($app,$container) {
 
     $app->get('/profile/premium', 'App\Controllers\Api\UserController:getBuyPremium')->setName('api.user.premium');
     $app->post('/profile/premium', 'App\Controllers\Api\UserController:postBuyPremium');
-	
+
     $app->put('/profile/change_password', 'App\Controllers\Api\UserController:changePassword')->setName('api.user.password.change');
 
     $app->get('/profile/{id}/edit', 'App\Controllers\Api\UserController:getEditProfile')->setName('api.get.edit.profile.user');
     $app->post('/profile/{id}/edit', 'App\Controllers\Api\UserController:putEditProfile')->setName('api.put.edit.profile.user');
-
-    $app->put('/change_password', 'App\Controllers\Api\UserController:changePassword')->setName('api.user.password.change');
 
     $app->group('/admin', function() use ($app,$container) {
     	$app->group('/course', function() use ($app,$container) {
@@ -48,13 +46,13 @@ $app->group('/api', function() use ($app,$container) {
 
 			$app->put('/{slug}/restore', 'App\Controllers\Api\ArticleController:softDelete')->setName('api.put.restore.article');
 		});
-	})->add(new \App\Middlewares\Api\AdminMiddleware($container)); 
+	})->add(new \App\Middlewares\Api\AdminMiddleware($container));
 
 	$app->group('/article', function() use($app, $container) {
 		$app->get('', 'App\Controllers\Api\ArticleController:showForUser')->setName('api.article.show.for.user');
 
-		$app->get('/search', 'App\Controllers\Api\ArticleController:searchByTitle')->setName('api.article.search');
-
+        $app->get('/search', 'App\Controllers\Api\ArticleController:searchByTitle')->setName('api.article.search');
+        
 		$app->get('/category/{category}', 'App\Controllers\Api\ArticleController:searchByCategory')->setName('api.article.category');
 
 		$app->get('/{slug}', 'App\Controllers\Api\ArticleController:searchBySlug')->setName('api.article.slug');

@@ -28,33 +28,32 @@ class Article extends \App\Models\BaseModel
                ->execute()
                ->fetchAll();
 
-            foreach ($categories as $keyCategory => $valueCategory) {
-            $article[$keyArticle]['category'][] = $valueCategory['category'];
-            }
+               foreach ($categories as $keyCategory => $valueCategory) {
+               $article[$keyArticle]['category'][] = $valueCategory['category'];
+               }
 
         }
-        
+
         return $article;
 
 
     }
-    public function add(array $data, $publish = null)
+    public function add(array $data)
     {
-        $data = [
+        $add = [
             'user_id'       => $data['user_id'],
             'title'         => $data['title'],
             'title_slug'    => preg_replace('/[^A-Za-z0-9-]+/', '-', strtolower($data['title'])),
             'content'       => $data['content'],
+            'is_publish'    => $data['is_publish'],
         ];
 
-        if ($publish) {
-            $merge['is_publish'] = 1;
+        if ($add['is_publish'] == 1) {
             $merge['publish_at'] = date('Y-m-d H:i:s');
-
-            $data = array_merge($data, $merge);
+            $add = array_merge($add, $merge);
         }
 
-        return $this->checkOrCreate($data);
+        return $this->checkOrCreate($add);
     }
 
     public function getEdit($slug)
@@ -66,7 +65,7 @@ class Article extends \App\Models\BaseModel
            ->from('categories', 'c')
            ->innerJoin('c', 'article_category', 'ac', 'c.id = ac.category_id')
            ->innerJoin('ac', 'articles', 'a', 'ac.article_id = a.id')
-           ->where('a.id = :id AND c.deleted = 0')
+           ->where('a.id = :id AND a.deleted = 0')
            ->setParameter(':id', $article['id'])
            ->execute()
            ->fetchAll();
@@ -85,19 +84,19 @@ class Article extends \App\Models\BaseModel
 
     }
 
-    public function edit($data, $slug, $publish = 1)
+    public function edit($data, $slug)
     {
         $edit = [
             'title'         => $data['title'],
             'title_slug'    => preg_replace('/[^A-Za-z0-9-]+/', '-', strtolower($data['title'])),
             'content'       => $data['content'],
+            'is_publish'    => $data['is_publish'],
         ];
 
-        if ($publish == 0) {
-            $merge['is_publish'] = 0;
+        if ($edit['is_publish'] == 1) {
+            $merge['publish_at'] = date('Y-m-d H:i:s');
             $edit = array_merge($edit, $merge);
         }
-
 
         $find = $this->find('title_slug', $slug)->withoutDelete()->fetch();
 
@@ -127,13 +126,13 @@ class Article extends \App\Models\BaseModel
                ->setParameter(':id', $valueArticle['id'])
                ->execute()
                ->fetchAll();
-
             foreach ($categories as $keyCategory => $valueCategory) {
             $article[$keyArticle]['category'][] = $valueCategory['category'];
             }
 
         }
-        
+
+
         return $article;
     }
 
@@ -156,12 +155,12 @@ class Article extends \App\Models\BaseModel
                ->execute()
                ->fetchAll();
 
-            foreach ($categories as $keyCategory => $valueCategory) {
-            $article[$keyArticle]['category'][] = $valueCategory['category'];
-            }
+               foreach ($categories as $keyCategory => $valueCategory) {
+               $article[$keyArticle]['category'][] = $valueCategory['category'];
+               }
 
         }
-        
+
         return $article;
     }
 
@@ -172,9 +171,10 @@ class Article extends \App\Models\BaseModel
         $this->query = $qbArticle->select('u.username, a.id, a.title, a.title_slug, a.content, a.publish_at')
                         ->from($this->table, 'a')
                         ->innerJoin('a', 'users', 'u', 'a.user_id = u.id')
-                        ->where('a.is_publish = 1');
+                        ->where('a.is_publish = 1')
+                        ->andWhere('a.deleted = 0');
 
-        $article = $this->withoutDelete()->paginate($page, $limit);
+        $article = $this->paginate($page, $limit);
 
         if (!$article) {
             return false;
@@ -192,12 +192,12 @@ class Article extends \App\Models\BaseModel
                ->execute()
                ->fetchAll();
 
-            foreach ($categories as $keyCategory => $valueCategory) {
-            $article['data'][$keyArticle]['category'][] = $valueCategory['category'];
-            }
+               foreach ($categories as $keyCategory => $valueCategory) {
+                   $article['data'][$keyArticle]['category'][] = $valueCategory['category'];
+               }
 
         }
-        
+
         return $article;
     }
 
@@ -208,13 +208,13 @@ class Article extends \App\Models\BaseModel
         $this->query = $qbArticle->select('u.username, a.id, a.title, a.title_slug, a.content, a.publish_at')
                         ->from($this->table, 'a')
                         ->innerJoin('a', 'users', 'u', 'a.user_id = u.id')
-                        ->innerJoin('c', 'article_category', 'ac', 'c.id = ac.category_id')
-                        ->innerJoin('ac', 'articles', 'a', 'ac.article_id = a.id')
-                        ->where('a.is_publish = 1')
+                        ->innerJoin('a', 'article_category', 'ac', 'a.id = ac.article_id')
+                        ->innerJoin('ac', 'categories', 'c', 'ac.category_id = c.id')
+                        ->where('a.is_publish = 1 AND a.deleted = 0')
                         ->andWhere('c.name = :category')
                         ->setParameter(':category', $category);
 
-        $article = $this->withoutDelete()->paginate($page, $limit);
+        $article = $this->paginate($page, $limit);
 
         if (!$article) {
             return false;
@@ -233,11 +233,11 @@ class Article extends \App\Models\BaseModel
                ->fetchAll();
 
             foreach ($categories as $keyCategory => $valueCategory) {
-            $article['data'][$keyArticle]['category'][] = $valueCategory['category'];
+               $article['data'][$keyArticle]['category'][] = $valueCategory['category'];
             }
 
         }
-        
+
         return $article;
     }
 
@@ -249,9 +249,10 @@ class Article extends \App\Models\BaseModel
                         ->from($this->table, 'a')
                         ->innerJoin('a', 'users', 'u', 'a.user_id = u.id')
                         ->where('a.is_publish = 1')
-                        ->andWhere('a.title LIKE %'.$title.'%');
-
-        $article = $this->withoutDelete()->paginate($page, $limit);
+                        ->andWhere('a.deleted = 0')
+                        ->andWhere('a.title LIKE'."'%$search%'");
+                        
+        $article = $this->paginate($page, $limit);
 
         if (!$article) {
             return false;
@@ -270,11 +271,11 @@ class Article extends \App\Models\BaseModel
                ->fetchAll();
 
             foreach ($categories as $keyCategory => $valueCategory) {
-            $article['data'][$keyArticle]['category'][] = $valueCategory['category'];
+               $article[$keyArticle]['category'][] = $valueCategory['category'];
             }
 
         }
-        
+
         return $article;
     }
 
@@ -287,32 +288,30 @@ class Article extends \App\Models\BaseModel
                         ->innerJoin('a', 'users', 'u', 'a.user_id = u.id')
                         ->where('a.is_publish = 1')
                         ->andWhere('a.title_slug = :title_slug')
+                        ->andWhere('a.deleted = 0')
                         ->setParameter(':title_slug', $slug);
 
-        $article = $this->withoutDelete()->fetch();
+        $article = $this->fetch();
 
         if (!$article) {
             return false;
         }
 
-        foreach ($article as $keyArticle => $valueArticle) {
-            $qb = $this->getBuilder();
+        $qb = $this->getBuilder();
 
-            $categories = $qb->select('c.name as category')
-               ->from('categories', 'c')
-               ->innerJoin('c', 'article_category', 'ac', 'c.id = ac.category_id')
-               ->innerJoin('ac', 'articles', 'a', 'ac.article_id = a.id')
-               ->where('a.id = :id AND a.deleted = 0')
-               ->setParameter(':id', $valueArticle['id'])
-               ->execute()
-               ->fetchAll();
+        $categories = $qb->select('c.name as category')
+            ->from('categories', 'c')
+            ->innerJoin('c', 'article_category', 'ac', 'c.id = ac.category_id')
+            ->innerJoin('ac', 'articles', 'a', 'ac.article_id = a.id')
+            ->where('a.id = :id AND a.deleted = 0')
+            ->setParameter(':id', $article['id'])
+            ->execute()
+            ->fetchAll();
 
             foreach ($categories as $keyCategory => $valueCategory) {
-            $article['category'][] = $valueCategory['category'];
+               $article['category'][] = $valueCategory['category'];
             }
 
-        }
-        
         return $article;
     }
 }

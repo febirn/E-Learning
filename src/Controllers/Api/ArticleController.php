@@ -91,12 +91,7 @@ class ArticleController extends \App\Controllers\BaseController
         if ($this->validator->validate()) {
             $article = new \App\Models\Articles\Article;
 
-            if ($request->getParam('publish') == 1) {
-                $publish = 1;
-            }
-
-            $create = $article->add($post, $publish);
-
+            $create = $article->add($post);
 
             if (!is_int($create)) {
                 return $this->responseDetail("Title have already used", 400);
@@ -144,7 +139,10 @@ class ArticleController extends \App\Controllers\BaseController
         $token = $request->getHeader('Authorization')[0];
 
         $article = new \App\Models\Articles\Article;
-        $getArticle = $article->getEdit($args['slug']);
+        $category = new \App\Models\Categories\Category;
+
+        $getArticle['article'] = $article->getEdit($args['slug']);
+        $getArticle['category'] = $category->getAll()->fetchAll();
 
         $validateUser = $this->validateUser($token, $getArticle);
 
@@ -153,7 +151,7 @@ class ArticleController extends \App\Controllers\BaseController
         } elseif (!$validateUser) {
             return $this->responseDetail("You have not Authorized to edit this article", 401);
         }
-        
+
         return $this->responseDetail("Data Available", 200, $getArticle);
     }
 
@@ -163,7 +161,7 @@ class ArticleController extends \App\Controllers\BaseController
 
         $article = new \App\Models\Articles\Article;
         $getArticle = $article->getEdit($args['slug']);
-        
+
         $validateUser = $this->validateUser($token, $getArticle);
 
         if (!$this->checkArticle($getArticle)) {
@@ -190,11 +188,7 @@ class ArticleController extends \App\Controllers\BaseController
         if ($this->validator->validate()) {
             $article = new \App\Models\Articles\Article;
 
-            if ($request->getParam('publish') == 0) {
-                $publish = 0;
-            }
-
-            $update = $article->edit($post, $args['slug'], $publish);
+            $update = $article->edit($post, $args['slug']);
 
             if (!is_array($update)) {
                 return $this->responseDetail("Title already used", 400);
@@ -219,7 +213,7 @@ class ArticleController extends \App\Controllers\BaseController
 
         $article = new \App\Models\Articles\Article;
         $findArticle = $article->find('title_slug', $args['slug'])->withoutDelete()->fetch();
-        
+
         $validateUser = $this->validateUser($token, $findArticle);
 
         if (!$this->checkArticle($findArticle)) {
@@ -259,7 +253,7 @@ class ArticleController extends \App\Controllers\BaseController
 
         $article = new \App\Models\Articles\Article;
         $findArticle = $article->find('title_slug', $args['slug'])->fetch();
-        
+
         $validateUser = $this->validateUser($token, $findArticle);
 
         if (!$this->checkArticle($findArticle)) {
@@ -282,8 +276,8 @@ class ArticleController extends \App\Controllers\BaseController
         $allArticle['content'] = $article->showForUser($page, 5);
         $allArticle['category'] = $category->getAll()->fetchAll();
 
-        if (!$allArticle) {
-            return $this->responseDetail("Article is empty", 404);
+        if (!$allArticle['content']) {
+            return $this->responseDetail("Article is empty", 200, $allArticle);
         }
 
         return $this->responseDetail("Data Available", 200, $allArticle);
@@ -294,8 +288,10 @@ class ArticleController extends \App\Controllers\BaseController
     {
         $page = $request->getQueryParam('page') ? $request->getQueryParam('page') : 1;
         $article = new \App\Models\Articles\Article;
+        $category = new \App\Models\Categories\Category;
 
-        $allArticle = $article->showByCategory($args['category'], $page, 5);
+        $allArticle['content'] = $article->showByCategory($args['category'], $page, 5);
+        $allArticle['category'] = $category->getAll()->fetchAll();
 
         if (!$allArticle) {
             return $this->responseDetail("Articles Not Found", 404);
@@ -309,7 +305,7 @@ class ArticleController extends \App\Controllers\BaseController
         $page = $request->getQueryParam('page') ? $request->getQueryParam('page') : 1;
         $article = new \App\Models\Articles\Article;
 
-        $allArticle = $article->search($request->getQueryParam('query'), $page, 5);
+        $allArticle = $article->search($request->getQueryParam('q'), $page, 5);
 
         if (!$allArticle) {
             return $this->responseDetail("Articles Not Found", 404);

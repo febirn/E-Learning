@@ -59,5 +59,6 @@ Feature: Article
         Given information about "articles" by "title" "testarticle"
         When I "DELETE" in "api/admin/article/hard_delete" by column "title_slug"
 
+
     Scenario: Delete New User
         When I delete user with username "testbehat"
