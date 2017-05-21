@@ -17,6 +17,7 @@ class HomeController extends \App\Controllers\BaseController
         // return $this->view->render($response,'home.twig', $data);
 
         var_dump($content);
+        var_dump($_SESSION['login']);   
     }
 }
 

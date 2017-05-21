@@ -6,7 +6,6 @@ class CourseContent extends \App\Models\BaseModel
 {
     protected $table = "course_content";
     protected $column = ['id', 'title', 'title_slug','course_id', 'url_video', 'deleted'];
-    protected $check = ['title_slug'];
 
     public function add($courseId, $dataVideo)
     {
@@ -18,18 +17,18 @@ class CourseContent extends \App\Models\BaseModel
                 'url_video'     => $value[1],
             ];
 
-            $addCourseContent = $this->checkOrCreate($data);
+            $addCourseContent = $this->create($data);
         }
         
         return $addCourseContent;
     }
 
-    public function edit($data, $course_content_id)
+    public function edit($data, $course_content_id, $video = null)
     {
         $edit = [
             'title'       =>  $data['title'],
             'title_slug'  =>  preg_replace('/[^A-Za-z0-9-]+/', '-', strtolower($data['title'])),
-            'url_video'   =>  $data['url_video'],
+            'url_video'   =>  $video,
         ];
 
         $find = $this->find('id', $course_content_id)->withoutDelete()->fetch();
@@ -39,7 +38,11 @@ class CourseContent extends \App\Models\BaseModel
             unset($edit['title_slug']);
         }
 
-        return $this->checkOrUpdate($edit, 'id', $find['id']);
+        if ($video == null) {
+            unset($edit['url_video']);
+        }
+
+        return $this->update($edit, 'id', $find['id']);
     }
 }
 

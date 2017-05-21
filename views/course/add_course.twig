@@ -1,0 +1,15 @@
+{% extends 'template.twig' %}
+
+{% block body %}
+<form action="" method="post">
+    <p><input type="text" name="title"></p>
+    <p><input type="text" name="url_source_code"></p>
+    <p><input type="text" name="type"></p>
+    <select name="category[]">
+        {% for category in category %}
+            <option value="{{ category.name }}">{{ category.name }}</option>}
+        {% endfor %}
+    </select>
+    <button> submit </button>
+</form>
+{% endblock %}

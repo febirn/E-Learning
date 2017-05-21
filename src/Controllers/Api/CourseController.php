@@ -43,32 +43,66 @@ class CourseController extends \App\Controllers\BaseController
         return $this->responseDetail("Data Available", 200, $findCourse);
     }
 
-    public function showSingelCourse(Request $request, Response $response, $args)
-    {
-        $course = new \App\Models\Courses\Course;
-        $getCourse = $course->getSingelCourse($args['slug']);
-
-        if (!$getCourse) {
-            return $this->responseDetail("Course is empty", 404);
-        }
-
-        return $this->responseDetail("Data Available", 200, $getCourse);
-    }
-
     public function showAllContent(Request $request, Response $response, $args)
     {
-        $course = new \App\Models\Courses\Course;
-        $getCourse = $course->getCourse($args['slug']);
+        $token = $request->getHeader('Authorization')[0];
+
+        $userToken = new \App\Models\Users\UserToken;
+        $userId = $userToken->find('token', $token)->fetch()['user_id'];
+
+        $courses = new \App\Models\Courses\Course;
+        $getCourse = $courses->getCourse($args['slug']);
 
         $courseContent = new \App\Models\Courses\CourseContent;
         $getCourseContent = $courseContent->find('course_id', $getCourse['id'])->withoutDelete()->fetchAll();
 
-        if (!$getCourse || !$getCourseContent) {
-            return $this->responseDetail("Course is empty", 404);
+        $validateUser = $this->validateUser($token, $getCourse);
+
+        if (!$validateUser) {
+            return $this->responseDetail("You have not Authorized to edit this Course", 401);
+        } elseif (!$getCourse || !$getCourseContent) {
+            return $this->responseDetail("Course Content is empty", 404);
         }
 
         return $this->responseDetail('Data Available', 200, $getCourseContent);
 
+    }
+
+    public function showContent(Request $request, Response $response, $args)
+    {
+        $token = $request->getHeader('Authorization')[0];
+
+        $userToken = new \App\Models\Users\UserToken;
+        $userId = $userToken->find('token', $token)->fetch()['user_id'];
+
+        $courses = new \App\Models\Courses\Course;
+        $getCourse = $courses->getCourse($args['slug']);
+
+        $courseContent = new \App\Models\Courses\CourseContent;
+        $getCourseContent = $courseContent->find('id', $args['id'])->withoutDelete()->fetch();
+
+        $validateUser = $this->validateUser($token, $getCourse, $getCourseContent);
+
+        if (!$validateUser) {
+            return $this->responseDetail("You have not Authorized to edit this Course", 401);
+        } elseif (!$getCourse || !$getCourseContent) {
+            return $this->responseDetail("Course Content is empty", 404);
+        }
+
+        return $this->responseDetail('Data Available', 200, $getCourseContent);
+    }
+
+    public function getCreate(Request $request, Response $response)
+    {
+        $category = new \App\Models\Categories\Category;
+
+        $find = $category->getAll()->fetchAll();
+        
+        if ($find) {
+            return $this->responseDetail("Category Available", 200, $find);
+        } else {
+            return $this->responseDetail("Category Not Available", 200);
+        }
     }
 
     public function create(Request $request, Response $response)
@@ -119,8 +153,8 @@ class CourseController extends \App\Controllers\BaseController
         $rule = [
             'required' => [
                 ['title'],
-                ['category'],
                 ['url_source_code'],
+                ['category'],
             ],
         ];
 
@@ -128,11 +162,11 @@ class CourseController extends \App\Controllers\BaseController
         $course = new \App\Models\Courses\Course;
         $getCourse = $course->getCourse($args['slug']);
         
-        $validateUser = $this->validateUser($token);
+        $validateUser = $this->validateUser($token, $getCourse);
 
         if (!$this->checkCourse($getCourse)) {
             return $this->responseDetail("Data Not Found", 400);
-        } elseif ($validateUser) {
+        } elseif (!$validateUser) {
             return $this->responseDetail("You have not Authorized to edit this Course", 401);
         }
         
@@ -169,15 +203,21 @@ class CourseController extends \App\Controllers\BaseController
         $courses = new \App\Models\Courses\Course;
         $getCourse = $courses->getCourse($args['slug']);
 
-        $validateUser = $this->validateUser($token, $getCourse);
+        $category = new \App\Models\Categories\Category;
+        $find = $category->getAll()->fetchAll();
 
+        $data['course'] = $getCourse;
+        $data['category'] = $find;
+
+        $validateUser = $this->validateUser($token, $getCourse);
+     
         if (!$this->checkCourse($getCourse)) {
             return $this->responseDetail("Data Not Found", 400);
-        } elseif ($validateUser) {
+        } elseif (!$validateUser) {
             return $this->responseDetail("You have not Authorized to edit this Course", 401);
         }
 
-        return $this->responseDetail('Data Available', 200, $getCourse);
+        return $this->responseDetail('Data Available', 200, $data);
     }
 
     public function addCourseContent(Request $request, Response $response, $args)
@@ -197,7 +237,7 @@ class CourseController extends \App\Controllers\BaseController
 
         $upload = $request->getUploadedFiles();
         $reqData = $request->getParams();
-
+        
         foreach ($reqData['title'] as $titleKey => $value) {
             $title[$titleKey] = $value;
         }
@@ -217,9 +257,8 @@ class CourseController extends \App\Controllers\BaseController
         if (!$upload) {
             $this->validator->rule('required', 'url_video.*.' . $titleKey);
             if ($this->validator->validate()) {
-                $dataVideo = $this->mergeArray($reqData['title'], $reqData['url_video']);
 
-                $courseAdd = $courseContent->add($getCourse['id'], $dataVideo);
+                $courseAdd = $courseContent->add($getCourse['id'], $reqData);
 
                 if (!is_int($courseAdd)) {
                     return $this->responseDetail('Title already used', 400);
@@ -243,6 +282,11 @@ class CourseController extends \App\Controllers\BaseController
 
                 $file = new \Upload\File('url_video', $storage);
 
+                $file->addValidations([
+                    new \Upload\Validation\Mimetype(['video/mp4', 'video/3gp', 'video/webm']),
+                    new \Upload\Validation\Size('128M')
+                ]);
+
                 foreach ($reqData['title'] as $key => $values) {
                     foreach ($upload['url_video'] as $valData) {
                         $file[$key]->setName(uniqid());
@@ -254,19 +298,7 @@ class CourseController extends \App\Controllers\BaseController
                         $urlVideo[$values] = $url;
                     }
                     $titleVideo[$values] = $values;
-                }
 
-                $file->addValidations([
-                    new \Upload\Validation\Mimetype(['video/mp4', 'video/3gp', 'video/webm']),
-                    new \Upload\Validation\Size('128M')
-                ]);
-
-                $dataVideo = array_merge_recursive($titleVideo, $urlVideo);
-
-                $courseAdd = $courseContent->add($getCourse['id'], $dataVideo);
-
-                if (!is_int($courseAdd)) {
-                    return $this->responseDetail('Title already used', 400);
                 }
 
                 try {
@@ -274,6 +306,14 @@ class CourseController extends \App\Controllers\BaseController
                 } catch (\Exception $errors) {
                     $errors = $file->getErrors();
                     return $this->responseDetail($errors, 400);
+                }
+
+                $dataVideo = array_merge_recursive($titleVideo, $urlVideo);
+
+                $courseAdd = $courseContent->add($getCourse['id'], $dataVideo);
+
+                if (!is_int($courseAdd)) {
+                    return $this->responseDetail('Title already used', 400);
                 }
                 
                 return $this->responseDetail('Upload File Success', 201);
@@ -289,11 +329,11 @@ class CourseController extends \App\Controllers\BaseController
         $course = new \App\Models\Courses\Course;
         $getCourse = $course->getCourse($args['slug']);
         
-        $validateUser = $this->validateUser($token);
+        $validateUser = $this->validateUser($token, $getCourse);
 
         if (!$this->checkCourse($getCourse)) {
             return $this->responseDetail("Data Not Found", 400);
-        } elseif ($validateUser) {
+        } elseif (!$validateUser) {
             return $this->responseDetail("You have not Authorized to edit this Course", 401);
         }
 
@@ -331,13 +371,14 @@ class CourseController extends \App\Controllers\BaseController
                 $findCourseContent = $courseContent->find('id', $reqData['id'])->fetch()['url_video'];
 
                 $findFile = end(explode('/', $findCourseContent));
-
+                
                 try {
                     $file->upload();
 
-                    if ($findFIle != 'sample.mp4') {
-                        unlink('upload/video/'.$fileName);
+                    if ($findFile != 'sample.mp4') {
+                        unlink('upload/video/' . $findFile);
                     }
+                    
                 } catch (\Exception $errors) {
                     $errors = $file->getErrors();
                     return $this->responseDetail($errors, 400);
@@ -346,22 +387,13 @@ class CourseController extends \App\Controllers\BaseController
                 $dataVideo = [
                     'id'        =>  $reqData['id'],
                     'title'     =>  $reqData['title'],
-                    'url_video' =>  $url,
                 ];
 
-                $courseEdit = $courseContent->edit($dataVideo, $reqData['id']);
-                
-                if (!is_array($courseEdit)) {
-                    return $this->responseDetail('Title already used', 400);
-                }
+                $courseEdit = $courseContent->edit($dataVideo, $reqData['id'], $url);
 
                 return $this->responseDetail('Update Data Success', 200);
             } else {
-                $courseEdit = $courseContent->edit($reqData, $reqData['id']);
-
-                if (!is_array($courseEdit)) {
-                    return $this->responseDetail('Title already used', 400);
-                }
+                $courseEdit = $courseContent->edit($reqData, $reqData['id'], $reqData['url_video']);
                 
                 return $this->responseDetail('Update Data Success', 200);
             }
@@ -369,32 +401,6 @@ class CourseController extends \App\Controllers\BaseController
             return $this->responseDetail('Errors', 400, $this->validator->errors());
         }
         
-    }
-
-    public function hardDeleteContent(Request $request, Response $response, $args)
-    {
-        $token = $request->getHeader('Authorization')[0];
-
-        $courseContent = new \App\Models\Courses\CourseContent;
-        $findCourseContent = $courseContent->find('id', $args['id'])->fetch();
-
-        $findFile = end(explode('/', $findCourseContent['url_video']));
-
-        $validateUser = $this->validateUser($token, $findCourse);
-
-        if (!$this->checkCourse($findCourse)) {
-            return $this->responseDetail("Data Not Found", 400);
-        } elseif ($validateUser) {
-            return $this->responseDetail("You have not Authorized to edit this Course", 401);
-        }
-
-        $deleteContent = $courseContent->hardDelete('id', $findCourse['id']);
-
-        if ($deleteContent) {
-            unlink('upload/video/'.$fileName);
-        }
-
-        return $this->responseDetail($findCourse['title']. ' is permanently removed', 200);
     }
 
     public function showTrashByIdUser(Request $request, Response $response)
@@ -461,6 +467,9 @@ class CourseController extends \App\Controllers\BaseController
 
         $course = new \App\Models\Courses\Course;
         $findCourse = $course->find('title_slug', $args['slug'])->fetch();
+
+        $courseContent = new \App\Models\Courses\CourseContent;
+        $findCourseContent = $courseContent->find('course_id', $findCourse['id'])->fetchAll();
         
         $validateUser = $this->validateUser($token, $findCourse);
 
@@ -470,22 +479,60 @@ class CourseController extends \App\Controllers\BaseController
             return $this->responseDetail("You have not Authorized to edit this Course", 401);
         }
 
+        foreach ($findCourseContent as $key => $value) {
+            $findFile = end(explode('/', $value['url_video']));
+
+            unlink('upload/video/' . $findFile);
+        }
+
         $course->hardDelete('id', $findCourse['id']);
 
         return $this->responseDetail($findCourse['title']. ' is permanently removed', 200);
     }
 
-    private function validateUser($token, $course = null)
+     public function hardDeleteContent(Request $request, Response $response, $args)
+    {
+        $token = $request->getHeader('Authorization')[0];
+
+        $course = new \App\Models\Courses\Course;
+        $findCourse = $course->find('title_slug', $args['slug'])->fetch();
+
+        $courseContent = new \App\Models\Courses\CourseContent;
+        $findCourseContent = $courseContent->find('id', $args['id'])->fetch();
+
+        $findFile = end(explode('/', $findCourseContent['url_video']));
+
+        $validateUser = $this->validateUser($token, $findCourse);
+
+        if (!$this->checkCourse($findCourse)) {
+            return $this->responseDetail("Data Not Found", 400);
+        } elseif (!$validateUser) {
+            return $this->responseDetail("You have not Authorized to edit this Course", 401);
+        }
+
+        $deleteContent = $courseContent->hardDelete('id', $findCourseContent['id']);
+
+        if ($deleteContent) {
+            unlink('upload/video/'.$findFile);
+        }
+
+        return $this->responseDetail($findCourseContent['title']. ' is permanently removed', 200);
+    }
+
+    private function validateUser($token, $course = null, $courseContent = null)
     {
         $userToken = new \App\Models\Users\UserToken;
-        $userId = $userToken->find('token', $token)->fetch()['user_id'];
-        
+        $userId = $userToken->find('token', $token)->fetch();
+
         $role = new \App\Models\Users\UserRole;
         $roleUser = $role->find('user_id', $userId)->fetch()['role_id'];
-        
-        if (($userId != $course['user_id'] && $roleUser > 1) || $roleUser > 1)  {
+
+        $content = new \App\Models\Courses\CourseContent;
+        $findCourse = $content->find('course_id', $courseContent['course_id'])->fetch();
+
+        if ($userId['user_id'] != $course['user_id']) {
             return false;
-        }
+        } 
         
         return true;
     }

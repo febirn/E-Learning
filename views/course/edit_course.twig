@@ -1,0 +1,21 @@
+{% extends 'template.twig' %}
+
+{% block body %}
+<form action="" method="post">
+    <p><input type="text" name="title" value="{{ data.course.title }}"></p>
+    <p><input type="text" name="url_source_code" value="{{ data.course.url_source_code }}"></p>
+    <p><input type="text" name="type"value="{{ data.course.type }}"></p>
+    <select class="form-control" id="category" name="category[]">
+        {% for category in data.category %}
+                {% for c in data.course.category %}
+                    {% if category.name == c %}
+                        <option value="{{category.name}}" selected>{{category.name}}</option>
+                    {% else %}
+                        <option value="{{category.name}}">{{category.name}}</option>
+                    {% endif %}
+                {% endfor %}
+        {% endfor %}
+    </select>
+    <button> submit </button>
+</form>
+{% endblock %}

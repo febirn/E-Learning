@@ -33,7 +33,8 @@ $app->group('/api', function() use ($app,$container) {
 
             $app->get('/trash', 'App\Controllers\Api\CourseController:showTrashByIdUser')->setName('api.get.trash.course');
 
-            $app->post('/create', 'App\Controllers\Api\CourseController:create')->setName('api.get.create.course');
+            $app->get('/create', 'App\Controllers\Api\CourseController:getCreate')->setName('api.get.create.course');
+            $app->post('/create', 'App\Controllers\Api\CourseController:create')->setName('api.post.create.course');
 
             $app->get('/{slug}/add_content', 'App\Controllers\Api\CourseController:getCourse')->setName('api.get.update.course');
             $app->post('/{slug}/add_content', 'App\Controllers\Api\CourseController:addCourseContent')->setName('api.put.update.course');
@@ -42,7 +43,8 @@ $app->group('/api', function() use ($app,$container) {
             $app->post('/{slug}/edit/course', 'App\Controllers\Api\CourseController:editCourse')->setName('api.post.edit.course');
 
             $app->get('/{slug}/edit/course_content', 'App\Controllers\Api\CourseController:showAllContent')->setName('api.get.course.content');
-            $app->post('/{slug}/edit/course_content', 'App\Controllers\Api\CourseController:putCourseContent')->setName('api.put.edit.course.content');
+             $app->get('/{slug}/edit/course_content/{id}', 'App\Controllers\Api\CourseController:showContent')->setName('api.get.course.content.id');
+            $app->post('/{slug}/edit/course_content/{id}', 'App\Controllers\Api\CourseController:putCourseContent')->setName('api.put.edit.course.content.id');
             
             $app->get('/{slug}/soft_delete', 'App\Controllers\Api\CourseController:softDelete')->setName('api.get.soft.delete.course');
 

@@ -37,6 +37,36 @@ $app->group('', function() use($app,$container) {
             $app->get('/all', 'App\Controllers\Web\CourseController:showAll')->setName('web.get.all.course');
 
             $app->get('/my_course', 'App\Controllers\Web\CourseController:showByIdUser')->setName('web.get.my.course');
+
+            $app->get('/trash', 'App\Controllers\Web\CourseController:showTrashByIdUser')->setName('web.get.trash.course');
+
+            $app->get('/create', 'App\Controllers\Web\CourseController:getCreateCourse')->setName('web.get.create.course');
+            $app->post('/create', 'App\Controllers\Web\CourseController:postCreateCourse');
+
+            $app->get('/{slug}/add_content', 'App\Controllers\Web\CourseController:getCourse')->setName('web.get.update.course');
+            $app->post('/{slug}/add_content', 'App\Controllers\Web\CourseController:postAddCourseContent');
+
+            $app->get('/{slug}/course_content', 'App\Controllers\Web\CourseController:getAllCourseContent')->setName('web.get.course.content');
+
+            $app->get('/{slug}/edit/course', 'App\Controllers\Web\CourseController:getEditCourse')->setName('web.edit.course');
+            $app->post('/{slug}/edit/course', 'App\Controllers\Web\CourseController:postEditCourse');
+
+            $app->get('/{slug}/edit/course_content/{id}', 'App\Controllers\Web\CourseController:getCourseContent')->setName('web.get.course.content.id');
+            $app->post('/{slug}/edit/course_content/{id}', 'App\Controllers\Web\CourseController:putCourseContent');
+
+            $app->get('/{slug}/soft_delete', 'App\Controllers\Web\CourseController:softDelete')->setName('web.soft.delete.course');
+
+            $app->get('/{slug}/restore', 'App\Controllers\Web\CourseController:restore')->setName('web.restore.course');
+            
+            $app->post('/{slug}/hard_delete', 'App\Controllers\Web\CourseController:hardDelete')->setName('web.hard.delete.course');
+
+            $app->post('/{slug}/hard_delete/course_content/{id}', 'App\Controllers\Web\CourseController:hardDeleteContent')->setName('web.hard.delete.course.content');
+        });
+
+        $app->group('/course', function() use($app, $container) {
+            $app->get('/search', 'App\Controllers\Api\CourseController:searchByTitle')->setName('web.course.search');
+            $app->get('/category/{category}', 'App\Controllers\Web\CourseController:searchByCategory')->setName('web.course.category');
+            $app->get('/{slug}', 'App\Controllers\Web\CourseController:searchBySlug')->setName('web.course.slug');
         });
     });
 

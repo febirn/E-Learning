@@ -1,0 +1,24 @@
+{% extends 'template.twig' %}
+
+{% block body %}
+{% if data.status == 200 %}
+    <form action="" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{{data.data.id}}">
+        <video width="400" controls>
+            <source src="{{data.data.url_video}}">
+        </video>
+        <p><input type="text" name="title" value="{{data.data.title}}"></p>
+        <p><input type="file" name="url_video"></p>
+        <button> submit </button>
+    </form>
+   <!--  <form action="" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{{data.data.id}}">
+        <p><input type="text" name="title" value="{{data.data.title}}"></p>
+        <p><input type="text" name="url_video" value="{{data.data.url_video}}"></p>
+        <button> submit </button>
+    </form> -->
+{% else %}
+    {{data.message}}
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'template.twig' %}
+
+{% block title %}E-Learning - My course{% endblock %}
+
+{% block css %}
+    <style>
+        .course-margin {
+            margin: 0 0.3em 0 0;
+        }       
+    </style>    
+{% endblock %}
+
+{% block body %}
+<div class="box-body">
+    <div id="course.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+        <a href="{{path_for('web.get.create.course')}}">
+            <button class="btn btn-primary pull-right">Create New course</button>
+        </a>
+        <table id="course.datatable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Total Videos</th>
+                    <th>Type Course</th>
+                    <th>Url Source Code</th>
+                    <th>Created at</th>
+                    <th>Options</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for course in data.data.data %}
+                <tr>
+                    <td>{{course.title}}</td>
+                    <td>{{course.category|join(',')}}</td>
+                    <td>{{course.video|join(',')}}</td>
+                    <td>
+                        {% if course.type == 1 %}
+                            Premium
+                        {% else %}
+                            Free
+                        {% endif %}
+                    </td>
+                    <td>{{course.url_source_code}}</td>
+                    <td>{{course.create_at}}</td>
+                    <td>
+                        <a href="{{path_for('web.course.slug',{slug : course.title_slug})}}" class="btn btn-info course-margin" data-toggle="tooltip" title="View Course">
+                            <i class="fa fa-eye" aria-hidden="true"></i>
+                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                                <i class="fa fa-pencil" aria-hidden="true"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <form action="{{ path_for('web.edit.course',{slug : course.title_slug}) }}">
+                                    <li><button>Edit Course Detail</button></li>
+                                </form>
+                                <form action="{{ path_for('web.get.course.content',{slug : course.title_slug}) }}">
+                                    <li><button>Edit Course Content</button></li>
+                                </form>
+                            </ul>
+                        </div>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-danger dropdown-toggle" type="button" data-toggle="dropdown">
+                                <i class="fa fa-trash-o" aria-hidden="true"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% if course.deleted == 0 %}
+                                <li>
+                                    <form action="{{ path_for('web.soft.delete.course', {slug: course.title_slug}) }}">
+                                        <button>Set To Trash</button>
+                                    </form>
+                                </li>
+                                {% endif %}
+                                    <form method="post" action="{{ path_for('web.hard.delete.course', {slug: course.title_slug}) }}">
+                                        <li><button>Delete</button></li>
+                                    </form>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function() {
+        $('#course.datatable').DataTable();
+    });
+</script>
+{% endblock %}

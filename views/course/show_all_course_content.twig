@@ -1,0 +1,54 @@
+
+{% extends 'template.twig' %}
+
+{% block title %}E-Learning - My course{% endblock %}
+
+{% block css %}
+    <style>
+        .course-margin {
+            margin: 0 0.3em 0 0;
+        }       
+    </style>    
+{% endblock %}
+
+{% block body %}
+<div class="box-body">
+    <div id="course.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+        <a href="{{ path_for('web.get.update.course', {slug:slug}) }}">
+            <button class="btn btn-primary pull-right">Create New course</button>
+        </a>
+        <table id="course.datatable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Options</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for course_content in data.data %}
+                <tr>
+                    <td>{{course_content.title}}</td>
+                    <td>
+                        <a href="{{path_for('web.get.course.content.id',{slug:slug, id : course_content.id})}}" class="btn btn-info course-margin" data-toggle="tooltip" title="View Video Course">
+                            <i class="fa fa-eye" aria-hidden="true"></i>
+                        </a>
+                        <form action="{{path_for('web.hard.delete.course.content',{slug:slug, id : course_content.id})}}" method="post">
+                            <button><i class="fa fa-trash-o" aria-hidden="true"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function() {
+        $('#course.datatable').DataTable();
+    });
+</script>
+{% endblock %}

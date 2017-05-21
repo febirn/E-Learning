@@ -1,0 +1,30 @@
+{% extends 'template.twig' %}
+{% block body %}
+{% include 'templates/flash/flash.twig' %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>username</th>
+                <th>title</th>
+                <th>url source code</th>
+                <th>type</th>
+                <th>restore</th>
+                <th>harddelete</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for course in course.data %}
+            <tr>
+                <td>{{course.id}}</td>
+                <td>{{course.user_id}}</td>
+                <td>{{course.title}}</td>
+                <td>{{course.url_source_code}}</td>
+                <td>{{course.type}}</td>
+                <td><a href="{{path_for('web.restore.course',{slug : course.title_slug})}}">restore</td>
+                <td>{{course.id}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
