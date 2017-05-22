@@ -21,10 +21,8 @@ class ArticleController extends \App\Controllers\BaseController
 
     public function showByIdUser(Request $request, Response $response)
     {
-        $token = $request->getHeader('Authorization')[0];
-
-        $userToken = new \App\Models\Users\UserToken;
-        $userId = $userToken->find('token', $token)->fetch()['user_id'];
+        $userToken = $this->findToken();
+        $userId = $userToken['user_id'];
 
         $article = new \App\Models\Articles\Article;
         $findArticle = $article->getArticleByUserId($userId);
@@ -38,10 +36,8 @@ class ArticleController extends \App\Controllers\BaseController
 
     public function showTrashByIdUser(Request $request, Response $response)
     {
-        $token = $request->getHeader('Authorization')[0];
-
-        $userToken = new \App\Models\Users\UserToken;
-        $userId = $userToken->find('token', $token)->fetch()['user_id'];
+        $userToken = $this->findToken();
+        $userId = $userToken['user_id'];
 
         $article = new \App\Models\Articles\Article;
         $findArticle = $article->getTrashByUserId($userId);
@@ -69,11 +65,10 @@ class ArticleController extends \App\Controllers\BaseController
 	{
 		$post = $request->getParams();
 
-		$token = $request->getHeader('Authorization')[0];
+		$userToken = $this->findToken();
+        $userId = $userToken['user_id'];
 
-		$userToken = new \App\Models\Users\UserToken;
-
-		$post['user_id'] = $userToken->find('token', $token)->fetch()['user_id'];
+		$post['user_id'] = $userId;
 
 		$rule = [
             'required' => [
@@ -109,21 +104,6 @@ class ArticleController extends \App\Controllers\BaseController
             return $this->responseDetail("Error", 400, $this->validator->errors());
         }
 	}
-
-    private function validateUser($token, $article)
-    {
-        $userToken = new \App\Models\Users\UserToken;
-        $userId = $userToken->find('token', $token)->fetch()['user_id'];
-
-        $role = new \App\Models\Users\UserRole;
-        $roleUser = $role->find('user_id', $userId)->fetch()['role_id'];
-
-        if ($userId != $article['user_id'] && $roleUser > 1) {
-            return false;
-        }
-
-        return true;
-    }
 
     private function checkArticle($article)
     {
@@ -254,7 +234,7 @@ class ArticleController extends \App\Controllers\BaseController
         $article = new \App\Models\Articles\Article;
         $findArticle = $article->find('title_slug', $args['slug'])->fetch();
 
-        $validateUser = $this->validateUser($token, $findArticle);
+        $validateUser = $this->validateUser($token, $findArticle, true);
 
         if (!$this->checkArticle($findArticle)) {
             return $this->responseDetail("Data Not Found", 400);

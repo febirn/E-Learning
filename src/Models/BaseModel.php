@@ -293,4 +293,25 @@ abstract class BaseModel
         $this->update($data, $column, $value);
         return $this->find($column, $value)->fetch();
     }
+
+    public function ascSort($column)
+    {
+        $this->query = $this->query->orderBy($column, 'ASC');
+
+        return $this;
+    }
+
+    public function descSort($column)
+    {
+        $this->query = $this->query->orderBy($column, 'DESC');
+
+        return $this;
+    }
+
+    public function limit(int $limit)
+    {
+        $this->query = $this->query->setMaxResults($limit);
+
+        return $this;
+    }
 }

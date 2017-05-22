@@ -58,4 +58,26 @@ abstract class BaseController
 
 		return false;
 	}
+
+	protected function validateUser($token, $query, $except = false)
+    {
+        $userToken = new \App\Models\Users\UserToken;
+        $userId = $userToken->find('token', $token)->fetch()['user_id'];
+
+        $role = new \App\Models\Users\UserRole;
+        $roleUser = $role->find('user_id', $userId)->fetch()['role_id'];
+
+        if ($except = true) {
+        	if ($userId != $query['user_id'] && $roleUser > 1) {
+            	return false;
+        	}
+        } else {
+        	if ($userId != $query['user_id']) {
+            	return false;
+        	}
+        }
+        
+
+        return true;
+    }
 }

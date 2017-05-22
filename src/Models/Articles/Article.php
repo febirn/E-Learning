@@ -23,7 +23,7 @@ class Article extends \App\Models\BaseModel
                ->from('categories', 'c')
                ->innerJoin('c', 'article_category', 'ac', 'c.id = ac.category_id')
                ->innerJoin('ac', 'articles', 'a', 'ac.article_id = a.id')
-               ->where('a.id = :id')
+               ->where('a.id = :id AND a.deleted = 0')
                ->setParameter(':id', $valueArticle['id'])
                ->execute()
                ->fetchAll();

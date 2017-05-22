@@ -7,10 +7,10 @@
 {% block content %}
 
     {% include 'templates/flash/flash.twig' %}
-    <form method="post" action="{{path_for('web.put.update.article', {slug: article.article.title_slug})}}">
+    <form method="post">
         <div class="form-group has-feedback {{ errors.title ? 'has-error': '' }}">
             <label for="title">Title:</label>
-            <input type="text" class="form-control" name="title" value="{{article.article.title}}">
+            <input type="text" class="form-control" name="title" value="{{article.title}}">
             {% if errors.title %}
                 <span class="help-block">{{ errors.title | first }}</span>
             {% endif %}
@@ -18,26 +18,24 @@
         <div class="form-group has-feedback {{ errors.category ? 'has-error': '' }}">
             <label for="tag">Tag:</label>
             <select class="form-control" id="category" name="category[]" multiple="multiple">
-                {% for category in article.category %}
-                        {% for c in article.article.category %}
-                            {% if category.name == c %}
-                                <option value="{{category.name}}" selected>{{category.name}}</option>
-                            {% endif %}
-                        {% endfor %}
-                {% endfor %}
+                {% if category %}
+                    {% for article in article %}
+                        <option value="{{category.name}}">{{category.name}}</option>
+                    {% endfor %}
+                {% endif %}
             </select>
             {% if errors.category %}
                 <span class="help-block">{{ errors.category | first }}</span>
             {% endif %}
         </div>
         <div class="form-group has-feedback {{ errors.content ? 'has-error': '' }}">
-            <textarea name="content" id="summernote">{{article.article.content|raw}}</textarea>
+            <textarea name="content" id="summernote">{{article.content|raw}}</textarea>
             {% if errors.content %}
                 <span class="help-block">{{ errors.content | first }}</span>
             {% endif %}
         </div>
-        <button name="is_publish" value="1">Save and Publish</button>
-        <button name="is_publish" value="0">Save as Draft</button>
+        <button name="publish" value="1">Save and Publish</button>
+        <button name="publish" value="1">Save as Draft</button>
     </form>
 
 {% endblock %}
