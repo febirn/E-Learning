@@ -1,0 +1,78 @@
+{% extends 'users/app.twig' %}
+
+{% block title %} Edit Course {% endblock %}
+
+{% block css %}
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+{% endblock %}
+{% block content %}
+    {% include 'templates/flash/flash.twig' %}
+    <form method="post" action="">
+        <div class="form-group has-feedback {{ errors.title ? 'has-error': '' }}">
+            <label for="title">Title:</label>
+            <input type="text" class="form-control" name="title" value="{{course.course.title}}">
+            {% if errors.title %}
+                <span class="help-block">{{ errors.title | first }}</span>
+            {% endif %}
+        </div>
+        <div class="form-group has-feedback {{ errors.category ? 'has-error': '' }}">
+            <label for="category">Category</label>
+            {% set cat = [] %}
+            {% set num = 0 %}
+            {% for key, category in course.category %}
+            {% set numc = num + 1 %}
+                {% set cat = cat|merge([{ (numc): category.name}]) %}
+            {% endfor %}
+
+            {% set cct = [] %}
+            {% for key, cacat in course.course.category %}
+            {% set numcct = num + 1 %}
+                {% set cct = cct|merge([{ (numcct): cacat}]) %}
+            {% endfor %}    
+
+            <select id="category" name="category[]" multiple="multiple"  class="form-control">
+                {% for key, item in cat %}
+                    {% if item in cct %}
+                        <option value="{{item|first}}" selected >{{item|first}}</option>
+                    {% else %}
+                        <option value="{{item|first}}">{{item|first}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            {% if errors.category %}
+                <span class="help-block">{{ errors.category | first }}</span>
+            {% endif %}
+        </div>
+        <div class="form-group has-feedback {{ errors.url_source_code ? 'has-error': '' }}">
+            <label for="url_source_code">Url Source Code:</label>
+            <input type="text" class="form-control" name="url_source_code" value="{{course.course.url_source_code}}">
+            {% if errors.url_source_code %}
+                <span class="help-block">{{ errors.url_source_code | first }}</span>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <input type="checkbox" name="type" data-toggle="toggle" 
+            {% if course.course.type == 0 %}
+             data-on="<i class='fa fa-star'></i> Premium"
+             data-off="<i class='fa fa-check'></i> Free"
+            {% else %}
+             data-on="<i class='fa fa-star'></i> Premium"
+             data-off="<i class='fa fa-check'></i> Free"
+            {% endif %}
+            >
+        </div>
+        <button class="btn btn-primary">Update</button>
+    </form>
+{% endblock %}
+
+{% block script %}
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+    <script>
+        $("#category").select2({
+            tags:true,
+            tokenSeparators:[','],
+            placeholder: "Add tag separate with coma"
+        });
+    </script>  
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'admin/dashboard.twig' %}
+
+{% block content %}
+{% include 'templates/flash/flash.twig'%}
+<div class="box-body">
+    {% if article == false %}
+        <div class="jumbotron">
+            <h1>You not have Articles In Trash</h1>
+        </div>
+    {% else %}
+    <div id="article.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+    <section class="content-header">        
+        <i class="fa fa-trash-o pull-right fa-2x blue" aria-hidden="true"></i> <span class="h3 blue">LIST TRASH</span>
+    </section>
+        <table id="article.datatable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for article in article %}
+                <tr>
+                    <td>{{article.title}}</td>
+                    <td>{{article.status == 1 ? 'Publish' : 'Draft'}}</td>
+                    <td>
+                        <form method="post" action="{{path_for('web.put.restore.article',{slug : article.title_slug})}}" class="inline-block">
+                            <a data-toggle="tooltip" title="Restore">
+                                <button class="btn btn-info">
+                                    <i class="fa fa-refresh" aria-hidden="true"></i>
+                                </button>
+                            </a>
+                        </form>
+                        <form method="post" action="{{path_for('web.delete.hard.delete.article',{slug : article.title_slug})}}" class="inline-block">
+                            <a data-toggle="tooltip" title="Delete">
+                                <button class="btn btn-danger">
+                                    <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                </button>
+                            </a>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function() {
+        $('#article.datatable').DataTable();
+    });
+</script>
+{% endblock %}

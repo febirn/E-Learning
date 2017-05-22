@@ -1,19 +1,29 @@
-{% extends 'users/app.twig' %}
+{% extends 'admin/dashboard.twig' %}
 
 {% block content %}
+{% include 'templates/flash/flash.twig'%}
 <div class="box-body">
-	{% if !article %}
+	{% if article == false %}
 		<div class="jumbotron">
 			<h1>You not have Articles</h1>
 			<a href="{{path_for('web.get.create.article')}}">
 				<button>Create Article</button>
 			</a>
+            <a href="{{path_for('web.get.trash.article')}}">
+                <button>Trash</button>
+            </a>
 		</div>
 	{% else %}
 	<div id="article.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
-		<a href="{{path_for('web.get.create.article')}}">
-			<button class="btn-primary pull-right">Create New Article</button>
-		</a>
+		<section class="content-header">
+            <a href="{{path_for('web.get.trash.article')}}" class="first">
+                <button class="btn btn-warning pull-right">Trash</button>
+            </a>
+            <a href="{{path_for('web.get.create.article')}}" class="first">
+                <button class="btn btn-primary pull-right">Create New Article</button>
+            </a>
+            <span class="h3 blue">LIST ARTICLE</span>
+        </section>
 		<table id="article.datatable" class="table table-striped table-bordered" cellspacing="0" width="100%">
 			<thead>
 				<tr>
@@ -29,35 +39,31 @@
 			{% for article in article %}
     			<tr>
 					<td>{{article.title}}</td>
-					<td>{{article.category}}</td>
-					<td>{{article.is_publish == 0 ? <i>Draft</i> : <i>Published</i>}}</td>
+					<td>{{article.category|join(',')}}</td>
+					<td>{{article.is_publish == 0 ? '<i>Draft</i>' : '<i>Published</i>'}}</td>
 					<td>{{article.create_at}}</td>
 					<td>
-                        <a href="" class="btn btn-primary">
-                            <i class="fa fa-eye" aria-hidden="true"></i>
-                        </a>
-
+                        {% if article.is_publish == 1 %}
+                            <a href="{{path_for('web.article.slug',{slug : article.title_slug})}}" class="btn btn-primary">
+                                <i class="fa fa-eye" aria-hidden="true"></i>
+                            </a>
+                        {% endif %}
+                        
                         <a href="{{path_for('web.get.update.article',{slug : article.title_slug})}}" class="btn btn-info">
                             <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
                         </a>
 
-                        <div class="dropdown">
+                        <div class="dropdown inline-block">
                             <button class="btn btn-danger dropdown-toggle" type="button" data-toggle="dropdown">
                                 <i class="fa fa-trash-o" aria-hidden="true"></i>
                             </button>
 
                             <ul class="dropdown-menu">
-                            	{% if article.deleted == 0 %}
-                            		<form action="{{path_for('web.put.soft.delete.article', {slug: article.title_slug})}}">
-                            			<li><button>Set To Trash</button></li>
-                            		</form>
-                            	{% else %}
-                            	    <form action="{{path_for('web.put.restore.article', {slug: article.title_slug})}}">
-                            			<li><button>Restore</button></li>
-                            		</form>
-                                {% endif %}
-                                <form action="{{path_for('web.delete.hard.delete.article', {slug: article.title_slug})}}">
-                            		<li><button>Delete</button></li>
+                            	<form action="{{path_for('web.put.soft.delete.article', {slug: article.title_slug})}}" method="post">
+                            		<li><button class="btn btn-flat btn-warning btn-block">Set To Trash</button></li>
+                            	</form>
+                                <form action="{{path_for('web.delete.hard.delete.article', {slug: article.title_slug})}}" method="post">
+                            		<li><button class="btn btn-flat btn-danger btn-block">Delete</button></li>
                             	</form>
                             </ul>
                         </div>

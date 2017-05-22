@@ -3,6 +3,28 @@
 <head>
     <title>{% block title %} {% endblock %}</title>
     {% include 'partials/css.twig' %}
+    <style>
+        .first {
+            z-index: 999999;
+        }
+        .dropdown-menu {
+            padding: 0;
+        }
+        .content-header {
+            padding: 15px 0 10px 0;
+            border-bottom: 2px solid #3c8dbc;
+            margin-bottom: 10px;
+        }
+        .blue {
+            color: #3c8dbc;
+        }
+        .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
+            vertical-align: middle;
+        }
+        .inline-block {
+            display: inline-block;
+        }
+    </style>
     {% block css %} {% endblock %}
 </head>
     {% block body %} {% endblock %}

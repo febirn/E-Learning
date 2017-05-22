@@ -32,7 +32,7 @@ class CourseController extends \App\Controllers\BaseController
 
         }
         
-        return $this->view->render($response,'course/show_by_id_user.twig', ['data' => $content['data']]);
+        return $this->view->render($response, 'courses/list_course.twig', ['data' => $content['data']]);
     }
 
     public function showTrashByIdUser(Request $request, Response $response)
@@ -46,7 +46,7 @@ class CourseController extends \App\Controllers\BaseController
 
         }
 
-        return $this->view->render($response,'course/trash.twig', ['course' => $content]['data']);
+        return $this->view->render($response, 'courses/trash.twig', ['course' => $content['data']]);
     }
 
     public function getCreateCourse(Request $request, Response $response)
@@ -60,12 +60,13 @@ class CourseController extends \App\Controllers\BaseController
 
         }
 
-        return $this->view->render($response, 'course/add_course.twig', ['category' => $content['data']]);
+        return $this->view->render($response, 'courses/add_course.twig', ['category' => $content['data']]);
     }
 
     public function postCreateCourse(Request $request, Response $response)
     {
         $body = $request->getParsedBody();
+        $body['type'] = $body['type'] == 'on' ? 1 : 0;
 
         try {
             $client = $this->testing->request('POST', $this->router->pathFor('api.post.create.course'), ['json' => $body]);
@@ -75,7 +76,7 @@ class CourseController extends \App\Controllers\BaseController
             return $response->withRedirect($this->router->pathFor('web.get.update.course', ['slug' => $content['title_slug']]));
 
         } catch (GuzzleException $e) {
-            $data = json_encode($e->getResponse()->getBody()->getContents(), true);
+            $data = json_decode($e->getResponse()->getBody()->getContents(), true);
 
             $error = $data['data'] ? $data['data'] : $data['message'];
 
@@ -107,12 +108,14 @@ class CourseController extends \App\Controllers\BaseController
             $content = json_decode($e->getResponse()->getBody()->getContents(), true);
         }
 
-        return $this->view->render($response, 'course/edit_course.twig', ['data' => $content['data']]);
+        return $this->view->render($response, 'courses/edit_course.twig', ['course' => $content['data']]);
     }
 
     public function postEditCourse(Request $request, Response $response, $args)
     {
         $reqData = $request->getParams();
+        // var_dump($reqData);die();
+        $reqData['type'] = $reqData['type'] == 'on' ? 1 : 0;
 
         try {
             $client = $this->testing->request('POST', $this->router->pathFor('api.post.edit.course', ['slug' => $args['slug']]), ['json' => $reqData]);
@@ -121,11 +124,15 @@ class CourseController extends \App\Controllers\BaseController
 
             $this->flash->addMessage('success', 'Data has been update');
 
+            return $response->withRedirect($this->router->pathFor('web.get.my.course'));
+
         } catch (GuzzleException $e) {
             $content = json_decode($e->getResponse()->getBody()->getContents(), true);
-        }
 
-        return $response->withRedirect($this->router->pathFor('web.get.my.course'));
+            $this->flash->addMessage('errors', $content['data']);
+
+            return $response->withRedirect($this->router->pathFor('web.edit.course', ["slug" => $args['slug']]));
+        }
     }
 
     public function getCourse(Request $request, Response $response, $args)
@@ -139,7 +146,7 @@ class CourseController extends \App\Controllers\BaseController
 
         }
 
-        return $this->view->render($response, 'course/add_course_content.twig', ['data' => $content['data']]);
+        return $this->view->render($response, 'courses/add_content_course.twig', ['data' => $content['data']]);
     }
 
     public function postAddCourseContent(Request $request, Response $response, $args)
@@ -204,7 +211,7 @@ class CourseController extends \App\Controllers\BaseController
 
         }
 
-        return $this->view->render($response, 'course/show_all_course_content.twig', ['data' => $content['data'], 'slug' => $args['slug']]);
+        return $this->view->render($response, 'courses/list_course_content.twig', ['course' => $content['data'], 'slug' => $args['slug']]);
     }
 
     public function getCourseContent(Request $request, Response $response, $args)
@@ -217,14 +224,14 @@ class CourseController extends \App\Controllers\BaseController
         } catch (GuzzleException $e) {
 
         }
-        return $this->view->render($response, 'course/edit_course_content.twig', ['data' => $content['data']]);
+        return $this->view->render($response, 'course/edit_course_content.twig', ['data' => $content['data'], 'slug' => $args['slug']]);
     }
 
     public function putCourseContent(Request $request, Response $response, $args)
     {
         $reqData = $request->getParams();
         $reqVideo = $request->getUploadedFiles()['url_video'];
-
+        
         if ($reqVideo) {
             if (!($reqVideo->getClientFilename() == null)) {
                 $sendData[] = [
@@ -234,20 +241,13 @@ class CourseController extends \App\Controllers\BaseController
                     'contents'  =>  fopen(realpath($reqVideo->file), 'rb'),
                 ];
             }
+        }
 
-            foreach ($reqData as $key => $value) {
-                $sendData[] = [
-                    'name' => $key,
-                    'contents' => $value,
-                ];
-            }
-        } else {
-            foreach ($reqData as $keyName => $valueName) {
-                $sendData[] = [
-                    'name' => $keyName,
-                    'contents' => $valueName,
-                ];
-            }
+        foreach ($reqData as $keyName => $valueName) {
+            $sendData[] = [
+                'name' => $keyName,
+                'contents' => $valueName,
+            ];
         }
 
         try {
@@ -256,10 +256,10 @@ class CourseController extends \App\Controllers\BaseController
             $content = json_decode($client->getBody(),true);
 
             return $response->withRedirect($this->router->pathFor('web.get.course.content', ['slug' => $args['slug']]));
-        } catch (GuzzleException $e) {
+        } catch (Exception $e) {
             $content = json_decode($e->getResponse()->getBody(),true);
 
-            return $this->view->render($response, 'course/show_all_course_content.twig', ['data' => $content]);
+            return $response->withRedirect($this->router->pathFor('web.get.course.content', ['slug' => $args['slug']]));
         }
     }
 
@@ -326,21 +326,30 @@ class CourseController extends \App\Controllers\BaseController
         }
     }
 
-    public function hardDeleteContent(Request $request, Response $response, $args)
+    public function searchByCategory(Request $request, Response $response, $args)
     {
+        $course = $this->testing->request('GET',
+                    $this->router->pathFor('api.course.category', ['category' => $args['category']]));
+
+        $course = json_decode($course->getBody()->getContents(), true);
+
+        return $this->view->render($response, 'courses/index.twig', ['course' => $course['data']]);
+    }
+
+    public function searchByTitle(Request $request, Response $response)
+    {
+        $req = $request->getParam('query');
         try {
-            $client = $this->testing->request('DELETE', $this->router->pathFor('api.get.hard.delete.course.content', ['slug' => $args['slug'], 'id' => $args['id']]));
-            
-            $this->flash->addMessage('success', 'success delete permanently');
+            $course = $this->testing->request('GET',
+                        $this->router->pathFor('api.course.search'), ['json' => $req]);
 
-            return $response->withRedirect($this->router->pathFor('web.get.course.content', ['slug' => $args['slug']]));
+            $course = json_decode($course->getBody()->getContents(), true);
+
+            return $this->view->render($response, 'courses/index.twig', ['course' => $course['data']]);
         } catch (GuzzleException $e) {
-            $content = json_decode($e->getResponse()->getBody(),true);
 
-            $this->flash->addMessage('errors', $content['message']);
-
-            return $response->withRedirect($this->router->pathFor('web.get.my.course'));
         }
+        return $this->view->render($response, 'courses/index.twig', ['article' => $course['data']]);
     }
 
     public function searchBySlug(Request $request, Response $response, $args)
@@ -349,10 +358,37 @@ class CourseController extends \App\Controllers\BaseController
             $client = $this->testing->request('GET', $this->router->pathFor('api.course.slug', ['slug' => $args['slug']]));
 
             $content = json_decode($client->getBody(),true);
-        } catch (Exception $e) {
+        } catch (GuzzleException $e) {
 
         }
 
-        return $this->view->render($response, 'course/show_course.twig', ['data' => $content['data']]);
+        return $this->view->render($response, 'courses/view_course.twig', ['data' => $content['data']]);
+    }
+
+    public function showForUser(Request $request, Response $response)
+    {
+        $page['page'] = $request->getQueryParam('page') ? $request->getQueryParam('page') : 1;
+        try {
+            $course = $this->testing->request('GET',
+                        $this->router->pathFor('api.course.show.for.user'), ['query' => $page]);
+            $course = json_decode($course->getBody()->getContents(), true);
+        } catch (GuzzleException $e) {
+            
+        }
+
+        return $this->view->render($response, 'courses/index.twig', ['course' => $course['data']]);
+    }
+
+    public function viewVideo(Request $request, Response $response, $args)
+    {
+        try {
+            $course = $this->testing->request('GET',
+                        $this->router->pathFor('api.course.view.video', ['slug' => $args['slug'], 'id' => $args['id']]));
+            $content = json_decode($course->getBody()->getContents(), true);
+        } catch (GuzzleException $e) {
+            
+        }
+
+        return $this->view->render($response, 'courses/view_course.twig', ['data' => $content['data'], 'video_id' => $args['id']]);
     }
 }

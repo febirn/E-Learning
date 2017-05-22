@@ -10,7 +10,7 @@ class CourseController extends \App\Controllers\BaseController
 	public function showAll(Request $request, Response $response)
 	{
 		$course = new \App\Models\Courses\Course;
-	    $allCourse = $Course->getAllJoin();
+	    $allCourse = $course->getAllJoin();
 
 	    if (!$allCourse) {
 	        return $this->responseDetail("Course is empty", 404);
@@ -45,7 +45,7 @@ class CourseController extends \App\Controllers\BaseController
         $getCourse = $courses->getCourse($args['slug']);
 
         $courseContent = new \App\Models\Courses\CourseContent;
-        $getCourseContent = $courseContent->find('course_id', $getCourse['id'])->withoutDelete()->fetchAll();
+        $getCourseContent = $courseContent->find('course_id', $getCourse['id'])->fetchAll();
 
         $validateUser = $this->validateUser($token, $getCourse);
 
@@ -328,6 +328,7 @@ class CourseController extends \App\Controllers\BaseController
         }
 
         $this->validator->rule('required', 'title');
+        // $this->validator->rule('required', 'url_video');
 
         $upload = $request->getUploadedFiles();
         $reqData = $request->getParams();
@@ -358,7 +359,7 @@ class CourseController extends \App\Controllers\BaseController
                     new \Upload\Validation\Size('128M')
                 ]);
 
-                $findCourseContent = $courseContent->find('id', $reqData['id'])->fetch()['url_video'];
+                $findCourseContent = $courseContent->find('id', $args['id'])->fetch()['url_video'];
 
                 $findFile = end(explode('/', $findCourseContent));
                 
@@ -375,15 +376,15 @@ class CourseController extends \App\Controllers\BaseController
                 }
 
                 $dataVideo = [
-                    'id'        =>  $reqData['id'],
+                    'id'        =>  $args['id'],
                     'title'     =>  $reqData['title'],
                 ];
 
-                $courseEdit = $courseContent->edit($dataVideo, $reqData['id'], $url);
+                $courseEdit = $courseContent->edit($dataVideo, $args['id'], $url);
 
                 return $this->responseDetail('Update Data Success', 200);
             } else {
-                $courseEdit = $courseContent->edit($reqData, $reqData['id'], $reqData['url_video']);
+                $courseEdit = $courseContent->edit($reqData, $args['id'], $reqData['url_video']);
                 
                 return $this->responseDetail('Update Data Success', 200);
             }
@@ -513,9 +514,11 @@ class CourseController extends \App\Controllers\BaseController
     public function searchByCategory(Request $request, Response $response, $args)
     {
         $page = $request->getQueryParam('page') ? $request->getQueryParam('page') : 1;
-
         $course = new \App\Models\Courses\Course;
-        $allCourse = $course->showByCategory($args['category'], $page, 5);
+        $category = new \App\Models\Categories\Category;
+
+        $allCourse['content'] = $course->showByCategory($args['category'], $page, 5);
+        $allCourse['category'] = $category->getAll()->fetchAll();
 
         if (!$allCourse) {
             return $this->responseDetail("Courses Not Found", 404);
@@ -529,7 +532,10 @@ class CourseController extends \App\Controllers\BaseController
         $page = $request->getQueryParam('page') ? $request->getQueryParam('page') : 1;
 
         $course = new \App\Models\Courses\Course;
-        $allCourse = $course->search($request->getQueryParam('query'), $page, 5);
+        $category = new \App\Models\Categories\Category;
+
+        $allCourse['content'] = $course->search($request->getQueryParam('query'), $page, 5);
+        $allCourse['category'] = $category->getAll()->fetchAll();
 
         if (!$allCourse) {
             return $this->responseDetail("Courses Not Found", 404);
@@ -557,6 +563,37 @@ class CourseController extends \App\Controllers\BaseController
         }
 
         return true;
+    }
+
+    public function showForUser(Request $request, Response $response)
+    {
+        $page = $request->getQueryParam('page') ? $request->getQueryParam('page') : 1;
+        $course = new \App\Models\Courses\Course;
+        $category = new \App\Models\Categories\Category;
+
+        $allCourse['content'] = $course->showForUser($page, 5);
+        $allCourse['category'] = $category->getAll()->fetchAll();
+
+        if (!$allCourse['content']) {
+            return $this->responseDetail("Course is empty", 200, $allCourse);
+        }
+
+        return $this->responseDetail("Data Available", 200, $allCourse);
+    }
+
+    public function viewVideo(Request $request, Response $response, $args)
+    {
+        $course = new \App\Models\Courses\Course;
+        $getCourse = $course->find('title_slug', $args['slug'])->fetch();
+        $getVideo = $course->getVideo($args['slug'], $args['id']);
+
+        if (!$getVideo) {
+            return $this->responseDetail("Video Not Found", 404);
+        } elseif (!$getCourse) {
+            return $this->responseDetail("Course Not Found", 404);
+        }
+
+        return $this->responseDetail("Data Available", 200, $getVideo);
     }
 
 }

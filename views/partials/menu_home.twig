@@ -12,7 +12,7 @@
                 {% elseif login %}
                     <li><a href="{{path_for('web.user.premium')}}">Premium</a></li>
                 {% endif %}
-                <li><a href="#">Course</a></li>
+                <li><a href="{{path_for('web.course.show.for.user')}}">Course</a></li>
                 <li><a href="{{path_for('web.article.show.for.user')}}">Article</a></li>
                 {% if login %}
                     <li><a href="{{ path_for('web.user.my.account') }}">Your Account</a></li>

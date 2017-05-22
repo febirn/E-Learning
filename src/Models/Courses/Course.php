@@ -31,29 +31,28 @@ class Course extends \App\Models\BaseModel
                 $course[$keyCourse]['category'][] = $valueCategory['category'];
             }
 
-            // $video = $this->getBuilder()->select('cctn.id')
-            //     ->from('course_content', 'cctn')
-            //     ->innerJoin('cctn', 'courses', 'csrid', 'cctn.course_id = csrid.id')
-            //     ->where('cctn.course_id = :courseId')
-            //     ->setParameter(':courseId', $valueCourse['id'])
-            //     ->execute()
-            //     ->fetchAll();
+            $video = $this->getBuilder()->select('cctn.id')
+                ->from('course_content', 'cctn')
+                ->innerJoin('cctn', 'courses', 'csrid', 'cctn.course_id = csrid.id')
+                ->where('cctn.course_id = :courseId')
+                ->setParameter(':courseId', $valueCourse['id'])
+                ->execute()
+                ->fetchAll();
             
-            // $course['data'][$keyCourse]['video'][] = count($video);
+            $course[$keyCourse]['video'][] = count($video);
         }
         
         return $course;
     }
-
-    public function getCourseByUserId($userId)
+    public function getAllJoin()
     {
-        $course = $this->find('user_id', $userId)->withoutDelete()->fetchAll();
+        $course = $this->getAll()->withoutDelete()->fetchAll();
 
         if (!$course) {
             return false;
         }
 
-        foreach ($course['data'] as $keyCourse => $valueCourse) {
+        foreach ($course as $keyCourse => $valueCourse) {
             $qb = $this->getBuilder();
             $categories = $qb->select('c.name as category')
                ->from('categories', 'c')
@@ -65,7 +64,43 @@ class Course extends \App\Models\BaseModel
                ->fetchAll();
 
             foreach ($categories as $keyCategory => $valueCategory) {
-                $course['data'][$keyCourse]['category'][] = $valueCategory['category'];
+                $course[$keyCourse]['category'][] = $valueCategory['category'];
+            }
+
+            // $video = $this->getBuilder()->select('cctn.id')
+            //     ->from('course_content', 'cctn')
+            //     ->innerJoin('cctn', 'courses', 'csrid', 'cctn.course_id = csrid.id')
+            //     ->where('cctn.course_id = :courseId')
+            //     ->setParameter(':courseId', $valueCourse['id'])
+            //     ->execute()
+            //     ->fetchAll();
+            
+            // $course['data'][$keyCourse]['video'][] = count($video);
+        }
+        return $course;
+    }
+
+    public function getCourseByUserId($userId)
+    {
+        $course = $this->find('user_id', $userId)->withoutDelete()->fetchAll();
+
+        if (!$course) {
+            return false;
+        }
+
+        foreach ($course as $keyCourse => $valueCourse) {
+            $qb = $this->getBuilder();
+            $categories = $qb->select('c.name as category')
+               ->from('categories', 'c')
+               ->innerJoin('c', 'course_category', 'cc', 'c.id = cc.category_id')
+               ->innerJoin('cc', 'courses', 'csr', 'cc.course_id = csr.id')
+               ->where('csr.id = :id AND csr.deleted = 0')
+               ->setParameter(':id', $valueCourse['id'])
+               ->execute()
+               ->fetchAll();
+
+            foreach ($categories as $keyCategory => $valueCategory) {
+                $course[$keyCourse]['category'][] = $valueCategory['category'];
             }
 
             // $video = $this->getBuilder()->select('cctn.id')
@@ -87,14 +122,9 @@ class Course extends \App\Models\BaseModel
             'user_id'           =>  $data['user_id'],
             'title'             =>  $data['title'],
             'title_slug'        =>  preg_replace('/[^A-Za-z0-9-]+/', '-', strtolower($data['title'])),
-            'type'              =>  $data['type'] == 'on' ? 1 : 0,
+            'type'              =>  $data['type'],
             'url_source_code'   =>  $data['url_source_code'],
         ];
-
-        if ($data['type'] == null) {
-            unset($data['type']);
-        }
-
         return $this->checkOrCreate($data);
     }
 
@@ -103,7 +133,7 @@ class Course extends \App\Models\BaseModel
         $edit = [
             'title'             =>  $data['title'],
             'title_slug'        =>  preg_replace('/[^A-Za-z0-9-]+/', '-', strtolower($data['title'])),
-            'type'              =>  $data['type'] == 'on' ? 1 : 0,
+            'type'              =>  $data['type'],
             'url_source_code'   =>  $data['url_source_code'],
         ];
 
@@ -190,8 +220,18 @@ class Course extends \App\Models\BaseModel
             foreach ($categories as $keyCategory => $valueCategory) {
                 $course['data'][$keyCourse]['category'][] = $valueCategory['category'];
             }
+
+            $video = $this->getBuilder()->select('cctn.id')
+                    ->from('course_content', 'cctn')
+                    ->innerJoin('cctn', 'courses', 'csrid', 'cctn.course_id = csrid.id')
+                    ->where('cctn.course_id = :courseId')
+                    ->setParameter(':courseId', $valueCourse['id'])
+                    ->execute()
+                    ->fetchAll();
+                
+            $course['data'][$keyCourse]['video'] = count($video);
         }
-        
+    
         return $course;
     }
 
@@ -224,6 +264,15 @@ class Course extends \App\Models\BaseModel
             foreach ($categories as $keyCategory => $valueCategory) {
                 $course['data'][$keyCourse]['category'][] = $valueCategory['category'];
             }
+            $video = $this->getBuilder()->select('cctn.id')
+                    ->from('course_content', 'cctn')
+                    ->innerJoin('cctn', 'courses', 'csrid', 'cctn.course_id = csrid.id')
+                    ->where('cctn.course_id = :courseId')
+                    ->setParameter(':courseId', $valueCourse['id'])
+                    ->execute()
+                    ->fetchAll();
+                
+            $course['data'][$keyCourse]['video'] = count($video);
         }
         
         return $course;
@@ -258,16 +307,112 @@ class Course extends \App\Models\BaseModel
             $category[] = $categoryValue['category'];
         }
 
-        $videos = $qb->select('DISTINCT csrctn.title', 'csrctn.url_video')
+        $videos = $qb->select('DISTINCT csrctn.title', 'csrctn.url_video, csrctn.id')
             ->from('course_content', 'csrctn')
             ->innerJoin('csrctn', 'courses', 'csr', 'csrctn.course_id = csr.id')
             ->where('csrctn.course_id = :id')
             ->setParameter(':id', $course['id'])
             ->execute()
             ->fetchAll();
+                
+        $course['count_video'] = count($videos);
         
         $course['category'] = $category;
         $course['video'] = $videos;
+
+        return $course;
+    }
+
+    public function showForUser(int $page, int $limit)
+    {
+        $qbCourse = $this->getBuilder();
+
+        $this->query = $qbCourse->select('u.username, c.id, c.title, c.title_slug, c.create_at, c.type')
+                        ->from($this->table, 'c')
+                        ->innerJoin('c', 'users', 'u', 'c.user_id = u.id')
+                        ->where('c.deleted = 0');
+
+        $course = $this->paginate($page, $limit);
+
+        if (!$course) {
+            return false;
+        }
+
+        foreach ($course['data'] as $keyCourse => $valueCourse) {
+            $qb = $this->getBuilder();
+
+            $categories = $qb->select('c.name as category')
+               ->from('categories', 'c')
+               ->innerJoin('c', 'course_category', 'cc', 'c.id = cc.category_id')
+               ->innerJoin('cc', 'courses', 'csr', 'cc.course_id = csr.id')
+               ->where('csr.id = :id AND csr.deleted = 0')
+               ->setParameter(':id', $valueCourse['id'])
+               ->execute()
+               ->fetchAll();
+
+               foreach ($categories as $keyCategory => $valueCategory) {
+                   $course['data'][$keyCourse]['category'][] = $valueCategory['category'];
+               }
+
+               $video = $this->getBuilder()->select('cctn.id')
+                    ->from('course_content', 'cctn')
+                    ->innerJoin('cctn', 'courses', 'csrid', 'cctn.course_id = csrid.id')
+                    ->where('cctn.course_id = :courseId')
+                    ->setParameter(':courseId', $valueCourse['id'])
+                    ->execute()
+                    ->fetchAll();
+                
+                $course['data'][$keyCourse]['video'] = count($video);
+
+        }
+
+        return $course;
+    }
+
+    public function getVideo($courseSlug, $videoId)
+    {
+        $this->query = $this->getBuilder()->select('c.id, c.title, c.title_slug, c.type, c.create_at, u.username')
+                        ->from($this->table, 'c')
+                        ->innerJoin('c', 'users', 'u', 'c.user_id = u.id')
+                        ->where('c.deleted = 0')
+                        ->andWhere('c.title_slug = :title_slug')
+                        ->setParameter(':title_slug', $courseSlug);
+
+        $course = $this->fetch();
+
+        if (!$course) {
+            return false;
+        }
+
+        $qb = $this->getBuilder();
+        $categories = $qb->select('DISTINCT c.name as category')
+            ->from('categories', 'c')
+            ->innerJoin('c', 'course_category', 'cc', 'c.id = cc.category_id')
+            ->innerJoin('cc', 'courses', 'crs', 'cc.course_id = crs.id')
+            ->where('cc.course_id = :id')
+            ->setParameter(':id', $course['id'])
+            ->execute()
+            ->fetchAll();
+
+        foreach ($categories as $categoryKey => $categoryValue) {
+            $category[] = $categoryValue['category'];
+        }
+
+        $videos = $qb->select('DISTINCT csrctn.title', 'csrctn.url_video, csrctn.id')
+            ->from('course_content', 'csrctn')
+            ->innerJoin('csrctn', 'courses', 'csr', 'csrctn.course_id = csr.id')
+            ->where('csrctn.course_id = :id')
+            ->setParameter(':id', $course['id'])
+            ->execute()
+            ->fetchAll();
+                
+        $course['count_video'] = count($videos);
+        
+        $course['category'] = $category;
+        
+        foreach ($videos as $key => $value) {
+            $course['video'][$value['id']] = $value;
+        }
 
         return $course;
     }

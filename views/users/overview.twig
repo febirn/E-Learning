@@ -38,8 +38,7 @@
             </tr>
             <tr>
               <th>Type Account</th>
-              <td>: {% if login.meta.is_premium == 0 %}Free {% else %}
-                  Premium{% endif %}</td>
+              <td>: {% if login.meta.is_premium == 1 %}Premium {% elseif login.meta.role < 3 %}Courser {% else %}Free{% endif %}</td>
             </tr>
             <tr>
               <th>Date Created</th>

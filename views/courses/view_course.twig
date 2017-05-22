@@ -1,0 +1,108 @@
+{% extends 'users/app.twig' %}
+
+{% block title %} E-Learning - {{data.title}} {% endblock %}
+
+{% block css %}
+    <link href="http://vjs.zencdn.net/5.19.2/video-js.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    {% if data == false %}
+        <div class="jumbotron">
+            <h1>Course Not Found</h1>
+        </div>
+    {% elseif (login.meta.role == 3 and login.meta.is_premium == 0)  and data.type == 1 %}
+        <div class="jumbotron">
+            <h1>You're Not Premium User</h1>
+            <a href="{{path_for('web.user.premium')}}">
+                <button type="button" class="btn btn-success">Get Premium</button>
+            </a>
+        </div>
+    {% else %}
+        <div class="container">
+            <div class="well">
+                <h1>
+                    {{data.title}}
+                </h1>
+                <br>
+                <ul class="list-inline pull-left"> 
+                    {% for category in data.category %}
+                        <label for="{{category}}" class="label label-primary">{{category}}</label>
+                    {% endfor %}
+                    <li>
+                        <i class="fa fa-tasks item"> {{data.count_video}} parts</i>
+                    </li>
+                    {% if data.type == 0 %}
+                        <li><label for="type" class="label label-default">Free</label></li>
+                    {% else %}
+                        <li><label for="type" class="label label-primary">Premium</label></li>
+                    {% endif %}
+                </ul>
+                <ul class="list-inline pull-right">
+                    <li><i class="fa fa-user"><b>{{data.username}}</b></i></li>
+                    <li><p class="item">{{data.create_at|date('D, F d Y')}}</p></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="well">
+                        {% if video_id == false %}
+                            {% if 'youtube' in data.video.0.url_video %}
+                                <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "techOrder": ["youtube"], "playbackRates": [1, 1.5, 2]}'>
+                                    <source src="{{data.video.0.url_video}}" type='video/youtube'>
+                                    <p class="vjs-no-js">
+                                      To view this video please enable JavaScript, and consider upgrading to a web browser that
+                                      <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+                                    </p>
+                                </video>
+                            {% else %}
+                                <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "playbackRates": [1, 1.5, 2]}'>
+                                    <source src="{{data.video.0.url_video}}" type='video/webm'>
+                                    <source src="{{data.video.0.url_video}}" type='video/mp4'>
+                                    <source src="{{data.video.0.url_video}}" type='video/3gp'>
+                                </video>
+                            {% endif %}
+                            <h3>{{data.video.0.title}}</h3>
+                        {% else %}
+                            {% if 'youtube' in attribute(data.video, video_id).url_video %}
+                                <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "techOrder": ["youtube"], "playbackRates": [1, 1.5, 2]}'>
+                                    <source src="{{attribute(data.video, video_id).url_video}}" type='video/youtube'>
+                                    <p class="vjs-no-js">
+                                      To view this video please enable JavaScript, and consider upgrading to a web browser that
+                                      <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+                                    </p>
+                                </video>
+                            {% else %}
+                                <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "playbackRates": [1, 1.5, 2]}'>
+                                    <source src="{{attribute(data.video, video_id).url_video}}" type='video/webm'>
+                                    <source src="{{attribute(data.video, video_id).url_video}}" type='video/mp4'>
+                                    <source src="{{attribute(data.video, video_id).url_video}}" type='video/3gp'>
+                                </video>
+                            {% endif %}
+                            <h3>{{attribute(data.video, video_id).title}}</h3>
+                        {% endif %}
+                        
+                    </div>
+                </div>
+                <div class="col-lg-9">
+                    <div class="well">
+                        <h2>Video List</h2>
+                        {% for item in data.video %}
+                            <a href="{{path_for('web.course.view.video', {slug: data.title_slug, id : item.id})}}">
+                            <h4>{{item.title}}</h4>
+                            </a>
+                            <br>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div> 
+        {% endif %}
+{% endblock %}
+
+{% block script %}
+    <script src="http://vjs.zencdn.net/5.19.2/video.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-youtube/2.4.0/Youtube.min.js"></script>
+{% endblock %}

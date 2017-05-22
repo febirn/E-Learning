@@ -51,6 +51,8 @@ class Article extends \App\Models\BaseModel
         if ($add['is_publish'] == 1) {
             $merge['publish_at'] = date('Y-m-d H:i:s');
             $add = array_merge($add, $merge);
+        } elseif ($add['is_publish'] == null) {
+          unset($add['is_publish']);
         }
 
         return $this->checkOrCreate($add);

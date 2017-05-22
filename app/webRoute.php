@@ -56,7 +56,7 @@ $app->group('', function() use($app,$container) {
             $app->post('/{slug}/edit/course', 'App\Controllers\Web\CourseController:postEditCourse');
 
             $app->get('/{slug}/edit/course_content/{id}', 'App\Controllers\Web\CourseController:getCourseContent')->setName('web.get.course.content.id');
-            $app->post('/{slug}/edit/course_content/{id}', 'App\Controllers\Web\CourseController:putCourseContent');
+            $app->post('/{slug}/edit/course_content/{id}', 'App\Controllers\Web\CourseController:putCourseContent')->setName('web.post.course.content.id');
 
             $app->get('/{slug}/soft_delete', 'App\Controllers\Web\CourseController:softDelete')->setName('web.soft.delete.course');
 
@@ -80,18 +80,20 @@ $app->group('', function() use($app,$container) {
 			$app->get('/{slug}/edit', 'App\Controllers\Web\ArticleController:getUpdate')->setName('web.get.update.article');
 			$app->post('/{slug}/edit', 'App\Controllers\Web\ArticleController:postUpdate')->setName('web.put.update.article');
 
-			$app->put('/{slug}/soft_delete', 'App\Controllers\Web\ArticleController:softDelete')->setName('web.put.soft.delete.article');
+			$app->post('/{slug}/soft_delete', 'App\Controllers\Web\ArticleController:softDelete')->setName('web.put.soft.delete.article');
 
-			$app->delete('/{slug}/hard_delete', 'App\Controllers\Web\ArticleController:hardDelete')->setName('web.delete.hard.delete.article');
+			$app->post('/{slug}/hard_delete', 'App\Controllers\Web\ArticleController:hardDelete')->setName('web.delete.hard.delete.article');
 
-			$app->put('/{slug}/restore', 'App\Controllers\Web\ArticleController:softDelete')->setName('web.put.restore.article');
+			$app->post('/{slug}/restore', 'App\Controllers\Web\ArticleController:restore')->setName('web.put.restore.article');
 		});
-	});//->add(new \App\Middlewares\Web\AdminMiddleware($container));
+	})->add(new \App\Middlewares\Web\AdminMiddleware($container));
 
 	$app->group('/course', function() use($app, $container) {
-        $app->get('/search', 'App\Controllers\Api\CourseController:searchByTitle')->setName('web.course.search');
+        $app->get('', 'App\Controllers\Web\CourseController:showForUser')->setName('web.course.show.for.user');
+        $app->get('/search', 'App\Controllers\Web\CourseController:searchByTitle')->setName('web.course.search');
         $app->get('/category/{category}', 'App\Controllers\Web\CourseController:searchByCategory')->setName('web.course.category');
         $app->get('/{slug}', 'App\Controllers\Web\CourseController:searchBySlug')->setName('web.course.slug');
+        $app->get('/{slug}/video/{id}', 'App\Controllers\Web\CourseController:viewVideo')->setName('web.course.view.video');
     });
 
 	$app->group('/article', function() use($app, $container) {

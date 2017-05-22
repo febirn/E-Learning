@@ -5,7 +5,7 @@ namespace App\Models\Courses;
 class CourseContent extends \App\Models\BaseModel
 {
     protected $table = "course_content";
-    protected $column = ['id', 'title', 'title_slug','course_id', 'url_video', 'deleted'];
+    protected $column = ['id', 'title', 'course_id', 'url_video', 'deleted'];
 
     public function add($courseId, $dataVideo)
     {
@@ -29,11 +29,10 @@ class CourseContent extends \App\Models\BaseModel
             'url_video'   =>  $video,
         ];
 
-        $find = $this->find('id', $course_content_id)->withoutDelete()->fetch();
+        $find = $this->find('id', $course_content_id)->fetch();
         
         if ($find['title'] == $edit['title']) {
             unset($edit['title']);
-            unset($edit['title_slug']);
         }
 
         if ($video == null) {

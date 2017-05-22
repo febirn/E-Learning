@@ -1,0 +1,117 @@
+{% extends 'admin/dashboard.twig' %}
+
+{% block css %}
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <link href="http://vjs.zencdn.net/5.19.2/video-js.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+{% include 'templates/flash/flash.twig'%}
+<div class="box-body">
+    {% if course == false %}
+        <div class="jumbotron">
+            <h1>You not have Courses</h1>
+            <a href="{{path_for('web.get.create.course')}}">
+                <button>Create Course</button>
+            </a>
+        </div>
+    {% else %}
+    <div id="course.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+        
+        <section class="content-header">
+            <a href="{{path_for('web.get.update.course', {slug:slug})}}" class="first">
+                <button class="btn btn-primary pull-right">Create New Course</button>
+            </a>
+            <span class="h3 blue">LIST COURSE CONTENT</span>
+        </section>            
+        <table id="course.datatable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th class="col-md-6">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for course in course %}
+                <tr>
+                    <td>{{course.title}}</td>
+                    <td class="col-md-6">
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#video">
+                            <i class="fa fa-eye" aria-hidden="true"></i>
+                        </button>
+
+                        <div class="dropdown inline-block">
+                            <form method="post" action="{{path_for('web.hard.delete.course.content', {slug:slug, id:course.id})}}">
+                                <button class="btn btn-danger dropdown-toggle">
+                                    <i class="fa fa-trash-o"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+
+                    <div id="video" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+                        <form action="{{path_for('web.post.course.content.id', {slug:slug, id:course.id})}}" method="post" enctype="multipart/form-data">
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    {% if 'youtube' in course.url_video %}
+                                        <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "techOrder": ["youtube"], "playbackRates": [1, 1.5, 2]}'>
+                                            <source src="{{course.url_video}}" type='video/youtube'>
+                                            <p class="vjs-no-js">
+                                              To view this video please enable JavaScript, and consider upgrading to a web browser that
+                                              <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+                                            </p>
+                                        </video>
+                                    {% else %}
+                                        <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "playbackRates": [1, 1.5, 2]}'>
+                                            <source src="{{course.url_video}}" type='video/webm'>
+                                            <source src="{{course.url_video}}" type='video/mp4'>
+                                            <source src="{{course.url_video}}" type='video/3gp'>
+                                        </video>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <div class="col-lg-12">
+                                            <input type="text" name="title" value="{{course.title}}">
+                                        </div>
+                                    </div>
+                                    <div class="box-header">
+                                        <div class="form-group">
+                                            <input data-on="<i class='fa fa-file-code-o'></i> Embed" data-off="<i class='fa fa-file'></i> File" type="checkbox" checked id="checkbox" data-toggle="toggle" data-target="#collapse3rdParty" aria-expanded="false" aria-controls="collapse3rdParty">
+                                        </div>
+                                    </div>
+                                    <input type="text" class="form-control video" id="url" name="url_video">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-default">Update</button>
+                                </div>
+                            </div>
+                    </form>
+                        </div>
+                    </div>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    <script src="http://vjs.zencdn.net/5.19.2/video.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-youtube/2.4.0/Youtube.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#course.datatable').DataTable();
+        });
+    </script>
+    <script>
+        $('#checkbox').change(function() {
+            console.log(this.checked);
+            $('.video').attr('type', this.checked ? 'text' : 'file');
+        });
+    </script>
+{% endblock %}

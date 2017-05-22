@@ -1,6 +1,8 @@
 <?php
 
 $app->group('/api', function() use ($app,$container) {
+    $app->get('/', 'App\Controllers\Api\HomeController:index')->setName('api.index');
+
 	$app->post('/register', 'App\Controllers\Api\UserController:register')->setName('api.user.register');
 
 	$app->get('/active', 'App\Controllers\Api\UserController:activeUser')->setName('api.user.active');
@@ -72,14 +74,16 @@ $app->group('/api', function() use ($app,$container) {
 
 			$app->delete('/{slug}/hard_delete', 'App\Controllers\Api\ArticleController:hardDelete')->setName('api.delete.hard.delete.article');
 
-			$app->put('/{slug}/restore', 'App\Controllers\Api\ArticleController:softDelete')->setName('api.put.restore.article');
+			$app->put('/{slug}/restore', 'App\Controllers\Api\ArticleController:restore')->setName('api.put.restore.article');
 		});
 	})->add(new \App\Middlewares\Api\AdminMiddleware($container));
 
 	$app->group('/course', function() use($app, $container) {
+        $app->get('', 'App\Controllers\Api\CourseController:showForUser')->setName('api.course.show.for.user');
         $app->get('/search', 'App\Controllers\Api\CourseController:searchByTitle')->setName('api.course.search');
         $app->get('/category/{category}', 'App\Controllers\Api\CourseController:searchByCategory')->setName('api.course.category');
         $app->get('/{slug}', 'App\Controllers\Api\CourseController:searchBySlug')->setName('api.course.slug');
+        $app->get('/{slug}/video/{id}', 'App\Controllers\Api\CourseController:viewVideo')->setName('api.course.view.video');
     });
 
 	$app->group('/article', function() use($app, $container) {

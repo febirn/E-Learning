@@ -40,7 +40,13 @@ class CourseCategory extends \App\Models\BaseModel
 
         if ($diffA) {
             foreach ($diffA as $key => $value) {
-                $this->hardDelete('category_id', $value);
+                $qb = $this->getBuilder();
+                $qb->delete($this->table)
+                    ->where('category_id = :category_id')
+                    ->andWhere('course_id = :course_id')
+                    ->setParameter(':category_id', $value)
+                    ->setParameter(':course_id', $courseId)
+                    ->execute();
             }
         }
 

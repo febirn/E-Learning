@@ -8,14 +8,13 @@
             <h1>Article Not Found</h1>
         </div>
     {% else %}
-        <section class="content">
             <div class="container">
                 <div class="well">
                     <h1>
                         {{article.title}}
                     </h1>
                     <br>
-                    <ul class="list-inline pull-right">
+                    <ul class="list-inline pull-left">
                         {% for category in article.category %}
                             <label for="{{category}}" class="label label-primary">{{category}}</label>
                         {% endfor %}
@@ -25,17 +24,14 @@
                     <br>
                 </div>
             </div>
-        </section>
-        <section class="content">
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12">
-                        <div class="well" style="height:600px;">
+                        <div class="well">
                             {{article.content |raw}}
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
     {% endif %}
 {% endblock %}

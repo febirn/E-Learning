@@ -28,32 +28,33 @@
                 </section>
 				<section class="content">
 					<div class="row">
-						<div class="col-lg-4">
-							<div class="box box-default">
-								<div class="box-header with-border">
-									<h3 class="box-title">
-										<a href="#">
-											<strong>Build a URL shortener</strong>
-										</a>
-									</h3>
-								</div>
-								<div class="box-body">
-									Wait, URL shorteners are boring right? Nope. We're building a fully tested Lumen API, Vue.js client and implementing 301 redirects with Node.js and Express.
-						            <br><br>
-						            <button type="button" class="btn btn-sm btn-default disabled">Slim</button>
-						            <button type="button" class="btn btn-sm btn-default disabled">Redis</button>
-						            <br><br>
-						            <div>
-						                <div class="col-sm-4">
-						                	<i class="fa fa-tasks item"> 16 parts</i>
-						                </div>
-						                <div class="col-sm-4">
-                							<p class="item">6 days ago</p>
-              							</div>
-						            </div>
+						{% for course in data %}
+							<div class="col-lg-4">
+								<div class="box box-default">
+									<div class="box-header with-border">
+										<h3 class="box-title">
+											<a href="{{path_for('web.course.slug', {slug:course.title_slug})}}">
+												<strong>{{course.title}}</strong>
+											</a>
+										</h3>
+									</div>
+									<div class="box-body">
+						    			{% for category in course.category %}
+						    			    <button type="button" class="btn btn-sm btn-default">{{category}}</button>
+						    			{% endfor %}
+						            	<br><br>
+						            	<div>
+						                	<div class="col-sm-4">
+						                		<i class="fa fa-tasks item"> {{course.video| first}} parts</i>
+						                	</div>
+							                <div class="col-sm-4">
+	                							<p class="item">{{data.create_at|date('D, F d Y')}}</p>
+	              							</div>
+						            	</div>
+									</div>
 								</div>
 							</div>
-						</div>
+						{% endfor %}
 					</div>
 				</section>
 			</div>

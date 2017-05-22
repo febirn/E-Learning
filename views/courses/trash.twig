@@ -1,0 +1,55 @@
+{% extends 'admin/dashboard.twig' %}
+
+{% block content %}
+{% include 'templates/flash/flash.twig'%}
+<div class="box-body">
+    {% if course == false %}
+        <div class="jumbotron">
+            <h1>You not have Courses In Trash</h1>
+        </div>
+    {% else %}
+    <div id="course.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+    <section class="content-header">        
+        <i class="fa fa-trash-o pull-right fa-2x blue" aria-hidden="true"></i> <span class="h3 blue">LIST TRASH</span>
+    </section>
+        <table id="course.datatable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for course in course %}
+                <tr>
+                    <td>{{course.title}}</td>
+                    <td>{{course.type == 1 ? 'Premium' : 'Free'}}</td>
+                    <td>
+                        <a href="{{path_for('web.restore.course',{slug : course.title_slug})}}" class="btn btn-info" data-toggle="tooltip" title="Restore">
+                            <i class="fa fa-refresh" aria-hidden="true"></i>
+                        </a>
+                        <form method="post" action="{{path_for('web.hard.delete.course',{slug : course.title_slug})}}" class="inline-block">
+                            <a data-toggle="tooltip" title="Delete">
+                                <button class="btn btn-danger">
+                                    <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                </button>
+                            </a>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function() {
+        $('#course.datatable').DataTable();
+    });
+</script>
+{% endblock %}

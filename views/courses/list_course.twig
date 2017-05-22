@@ -1,0 +1,93 @@
+{% extends 'admin/dashboard.twig' %}
+
+{% block content %}
+{% include 'templates/flash/flash.twig'%}
+<div class="box-body">
+    {% if data == false %}
+        <div class="jumbotron">
+            <h1>You not have Courses</h1>
+            <a href="{{path_for('web.get.create.course')}}">
+                <button>Create Course</button>
+            </a>
+            <a href="{{path_for('web.get.trash.course')}}">
+                <button>Trash</button>
+            </a>
+        </div>
+    {% else %}
+    <div id="course.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+        <section class="content-header">
+            <a href="{{path_for('web.get.trash.course')}}" class="first">
+                <button class="btn btn-warning pull-right">Trash</button>
+            </a>
+            <a href="{{path_for('web.get.create.course')}}" class="first">
+                <button class="btn btn-primary pull-right">Create New Course</button>
+            </a>
+            <span class="h3 blue">LIST COURSE</span>
+        </section>
+        <table id="course.datatable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for course in data %}
+                <tr>
+                    <td>{{course.title}}</td>
+                    <td>{{course.category|join(',')}}</td>
+                    <td>{{course.type == 1 ? 'Premium' : 'Free'}}</td>
+                    <td>
+                        <a href="{{path_for('web.course.slug', {slug: course.title_slug})}}" class="btn btn-primary">
+                            <i class="fa fa-eye" aria-hidden="true"></i>
+                        </a>
+
+                        <div class="dropdown inline-block">
+                            <button class="btn btn-info dropdown-toggle" type="button" data-toggle="dropdown">
+                                <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                            </button>
+                                
+                            <ul class="dropdown-menu">
+                                <form action="{{path_for('web.edit.course',{slug : course.title_slug})}}">
+                                    <li><button class="btn btn-flat btn-info btn-block">Edit Course</button></li>
+                                </form>
+                                <form action="{{path_for('web.get.course.content',{slug : course.title_slug})}}">
+                                    <li><button class="btn btn-flat btn-info  btn-block">Edit Course Content</button></li> 
+                                </form>
+                            </ul>
+                        </div>
+
+                        <div class="dropdown inline-block">
+                            <button class="btn btn-danger dropdown-toggle" type="button" data-toggle="dropdown">
+                                <i class="fa fa-trash-o" aria-hidden="true"></i>
+                            </button>
+
+                            <ul class="dropdown-menu">
+                                <form action="{{path_for('web.soft.delete.course', {slug: course.title_slug})}}">
+                                    <li><button class="btn btn-flat btn-warning btn-block">Set To Trash</button></li>
+                                </form>
+                                <form method="post" action="{{path_for('web.hard.delete.course', {slug: course.title_slug})}}">
+                                    <li><button class="btn btn-flat btn-danger btn-block">Delete</button></li>
+                                </form>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function() {
+        $('#course.datatable').DataTable();
+    });
+</script>
+{% endblock %}

@@ -217,7 +217,7 @@ class ArticleController extends \App\Controllers\BaseController
         $validateUser = $this->validateUser($token, $findArticle);
 
         if (!$this->checkArticle($findArticle)) {
-            return $this->responseDetail("Data Not Found", 400);
+            return $this->responseDetail("Data Not Found", 404);
         } elseif (!$validateUser) {
             return $this->responseDetail("You have not Authorized to edit this article", 401);
         }

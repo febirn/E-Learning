@@ -267,7 +267,7 @@ class UserController extends \App\Controllers\BaseController
         } catch (GuzzleException $e) {
             $error = json_decode($e->getResponse()->getBody()->getContents(),true);
 
-            $this->flash->addMessage('errors', $error[0]);
+            $this->flash->addMessage('errors', $error['data'][0]);
 
             return $response->withRedirect($this->router->pathFor(
                    'web.user.edit_profile'));
