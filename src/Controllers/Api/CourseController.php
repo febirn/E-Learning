@@ -550,4 +550,13 @@ class CourseController extends \App\Controllers\BaseController
         return $this->responseDetail("Data Available", 200, $allCourse);
     }
 
+    private function checkCourse($course)
+    {
+        if (!$course) {
+            return false;
+        }
+
+        return true;
+    }
+
 }
