@@ -1,4 +1,4 @@
-{% extends 'users/app.twig' %}
+{% extends 'admin/dashboard.twig' %}
 
 {% block title %} Edit Article {% endblock %}
 {% block css %}
@@ -8,6 +8,7 @@
 {% block content %}
 {% include 'templates/flash/flash.twig' %}
     <form method="post" action="{{path_for('web.get.update.article', {slug: article.title_slug})}}">
+    {{article|json_encode}}
         <div class="form-group has-feedback {{ errors.title ? 'has-error': '' }}">
             <label for="title">Title:</label>
             <input type="text" class="form-control" name="title" value="{{article.title}}">
@@ -17,12 +18,26 @@
         </div>
         <div class="form-group has-feedback {{ errors.category ? 'has-error': '' }}">
             <label for="tag">Tag:</label>
+                {% set cat = [] %}
+                {% set num = 0 %}
+                {% for key, category in  category %}
+                {% set numc = num + 1 %}
+                    {% set cat = cat|merge([{ (numc): category.name}]) %}
+                {% endfor %}
+
+                {% set cct = [] %}
+                {% for key, cacat in article.category %}
+                {% set numcct = num + 1 %}
+                    {% set cct = cct|merge([{ (numcct): cacat}]) %}
+                {% endfor %}  
             <select class="form-control" id="category" name="category[]" multiple="multiple">
-                {% if category %}
-                    {% for article in article %}
-                        <option value="{{category.name}}">{{category.name}}</option>
-                    {% endfor %}
-                {% endif %}
+                    {% for key, item in cat %}
+                    {% if item in cct %}
+                        <option value="{{item|first}}" selected >{{item|first}}</option>
+                    {% else %}
+                        <option value="{{item|first}}">{{item|first}}</option>
+                    {% endif %}
+                {% endfor %}
             </select>
             {% if errors.category %}
                 <span class="help-block">{{ errors.category | first }}</span>
@@ -34,8 +49,8 @@
                 <span class="help-block">{{ errors.content | first }}</span>
             {% endif %}
         </div>
-        <button name="publish" value="1">Save and Publish</button>
-        <button name="publish" value="1">Save as Draft</button>
+        <button name="is_publish" value="1">Save and Publish</button>
+        <button name="is_publish" value="0">Save as Draft</button>
     </form>
 
 {% endblock %}

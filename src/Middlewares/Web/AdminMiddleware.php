@@ -1,6 +1,6 @@
 <?php 
 
-namespace App\Middlewares\Api;
+namespace App\Middlewares\Web;
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -14,17 +14,18 @@ class AdminMiddleware extends \App\Middlewares\BaseMiddleware
         if (in_array($request->getUri()->getPath(), $blackList)) {
             if ($_SESSION['login']['meta']['role'] > 1) {
 
-                $this->flash->addMessage('warning', 'You Haven't Authorized);
+                $this->flash->addMessage('warning', "You Haven't Authorized");
 
                 return $response->withRedirect($this->router->pathFor('web.home'));
             }
         }
 
-        if ($findRole['role_id'] == 3) {
-            $this->flash->addMessage('warning', 'You Haven't Authorized);
+        if ($_SESSION['login']['meta']['role'] == 3) {
+            $this->flash->addMessage('warning', "You Haven't Authorized");
 
             return $response->withRedirect($this->router->pathFor('web.home'));
         }
+
         
         $response = $next($request, $response);
         

@@ -284,8 +284,10 @@ class ArticleController extends \App\Controllers\BaseController
     {
         $page = $request->getQueryParam('page') ? $request->getQueryParam('page') : 1;
         $article = new \App\Models\Articles\Article;
+        $category = new \App\Models\Categories\Category;
 
-        $allArticle = $article->search($request->getQueryParam('q'), $page, 5);
+        $allArticle['content'] = $article->search($request->getQueryParam('query'), $page, 5);
+        $allArticle['category'] = $category->getAll()->fetchAll();
 
         if (!$allArticle) {
             return $this->responseDetail("Articles Not Found", 404);

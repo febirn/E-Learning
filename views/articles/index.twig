@@ -14,7 +14,7 @@
 {% block content %}
 <div class="row">
     <div class="col-lg-9">
-        {% if article.content == false %}
+        {% if article.content.data == false %}
             <div class="jumbotron">
                 <h3>Sorry, We haven't Article yet</h3>
             </div>
@@ -22,9 +22,9 @@
             {% for data in article.content.data %}
                 <div class="col-lg-12">
                     <div class="well">
-                        <h3><a href="{{path_for('web.article.slug', {slug: data.slug})}}">{{data.title}}</a></h3>
+                        <h3><a href="{{path_for('web.article.slug', {slug: data.title_slug})}}">{{data.title}}</a></h3>
                         <p>
-                            {{data.content|raw|slice(0, 300)}}
+                            {{data.content|slice(0, 300)|raw}}
                         </p>
                         <br>
                         {% for category in data.category %}
@@ -32,7 +32,7 @@
                         {% endfor %}
                         <hr>
                         <ul class="list-inline">
-                            <li><i class="fa fa-user"><b>{{data.username}}</b></i></li>
+                            <li><i class="fa fa-user"> <b>{{data.username}}</b></i></li>
                             <li><p class="item">{{data.publish_at|date('D, F d Y')}}</p></li>
                         </ul>
                     </div>
@@ -77,7 +77,7 @@
             <div class="col-lg-12">
                 <ul class="list-group">
                     <li class="list-group-item"><b>By subject</b></li>
-                    <li class="list-group-item"><a href="">All</a></li>
+                    <li class="list-group-item"><a href="{{path_for('web.article.show.for.user')}}">All</a></li>
                     {% for category in article.category %}
                         <li class="list-group-item"><a href="{{path_for('web.article.category', {category: category.name})}}">{{category.name}}</a></li>
                     {% endfor %}

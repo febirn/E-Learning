@@ -338,10 +338,10 @@ class CourseController extends \App\Controllers\BaseController
 
     public function searchByTitle(Request $request, Response $response)
     {
-        $req = $request->getParam('query');
+        $req['query'] = $request->getParam('query');
         try {
             $course = $this->testing->request('GET',
-                        $this->router->pathFor('api.course.search'), ['json' => $req]);
+                        $this->router->pathFor('api.course.search'), ['query' => $req]);
 
             $course = json_decode($course->getBody()->getContents(), true);
 
@@ -349,7 +349,7 @@ class CourseController extends \App\Controllers\BaseController
         } catch (GuzzleException $e) {
 
         }
-        return $this->view->render($response, 'courses/index.twig', ['article' => $course['data']]);
+        return $this->view->render($response, 'courses/index.twig', ['course' => $course['data']]);
     }
 
     public function searchBySlug(Request $request, Response $response, $args)

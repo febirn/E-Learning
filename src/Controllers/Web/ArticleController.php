@@ -92,7 +92,7 @@ class ArticleController extends \App\Controllers\BaseController
             
         }
         return $this->view->render($response, 'articles/edit_article.twig',
-                ['article' => $content['data']]);
+                $content['data']);
     }
 
     public function postUpdate(Request $request, Response $response, $args)
@@ -197,14 +197,12 @@ class ArticleController extends \App\Controllers\BaseController
 
     public function searchByTitle(Request $request, Response $response)
     {
-        $req = $request->getParam('query');
+        $req['query'] = $request->getParam('query');
         try {
             $article = $this->testing->request('GET',
-                        $this->router->pathFor('api.article.search'), ['json' => $req]);
+                        $this->router->pathFor('api.article.search'), ['query' => $req]);
 
             $article = json_decode($article->getBody()->getContents(), true);
-
-            return $this->view->render($response, 'articles/index.twig', ['article' => $article['data']]);
         } catch (GuzzleException $e) {
 
         }

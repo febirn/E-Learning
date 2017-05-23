@@ -41,7 +41,7 @@
                     <td>{{course.category|join(',')}}</td>
                     <td>{{course.type == 1 ? 'Premium' : 'Free'}}</td>
                     <td>
-                        <a href="{{path_for('web.course.slug', {slug: course.title_slug})}}" class="btn btn-primary">
+                        <a href="{{path_for('web.course.slug', {slug: course.title_slug})}}" target="_blank" class="btn btn-primary">
                             <i class="fa fa-eye" aria-hidden="true"></i>
                         </a>
 

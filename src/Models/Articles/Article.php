@@ -273,7 +273,7 @@ class Article extends \App\Models\BaseModel
                ->fetchAll();
 
             foreach ($categories as $keyCategory => $valueCategory) {
-               $article[$keyArticle]['category'][] = $valueCategory['category'];
+               $article['data'][$keyArticle]['category'][] = $valueCategory['category'];
             }
 
         }

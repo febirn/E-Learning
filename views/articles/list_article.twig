@@ -44,7 +44,7 @@
 					<td>{{article.create_at}}</td>
 					<td>
                         {% if article.is_publish == 1 %}
-                            <a href="{{path_for('web.article.slug',{slug : article.title_slug})}}" class="btn btn-primary">
+                            <a href="{{path_for('web.article.slug',{slug : article.title_slug})}}" class="btn btn-primary" target="_blank">
                                 <i class="fa fa-eye" aria-hidden="true"></i>
                             </a>
                         {% endif %}
