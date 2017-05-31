@@ -256,7 +256,7 @@ class CourseController extends \App\Controllers\BaseController
             $content = json_decode($client->getBody(),true);
 
             return $response->withRedirect($this->router->pathFor('web.get.course.content', ['slug' => $args['slug']]));
-        } catch (Exception $e) {
+        } catch (GuzzleException $e) {
             $content = json_decode($e->getResponse()->getBody(),true);
 
             return $response->withRedirect($this->router->pathFor('web.get.course.content', ['slug' => $args['slug']]));

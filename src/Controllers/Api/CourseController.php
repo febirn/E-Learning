@@ -328,7 +328,7 @@ class CourseController extends \App\Controllers\BaseController
         }
 
         $this->validator->rule('required', 'title');
-        // $this->validator->rule('required', 'url_video');
+        $this->validator->rule('required', 'url_video');
 
         $upload = $request->getUploadedFiles();
         $reqData = $request->getParams();
