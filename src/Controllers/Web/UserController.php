@@ -249,7 +249,7 @@ class UserController extends \App\Controllers\BaseController
                 'contents' => $value,
             ];
         }
-
+        
         try {
             $client = $this->testing->request('POST', $this->router->pathFor('api.put.edit.profile.user', ['id' => $id]), [ 'multipart' => $data]);
 

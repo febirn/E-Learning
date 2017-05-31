@@ -37,6 +37,7 @@ class User extends \App\Models\BaseModel
             'name'  => $data['name'],
             'email' => $data['email'],
             'photo' => $photo,
+            'phone' => $data['phone']
         ];
 
         if (!$data['email']) {

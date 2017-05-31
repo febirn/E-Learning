@@ -273,7 +273,7 @@ class UserController extends \App\Controllers\BaseController
                     $file->upload();
 
                     if ($findUser['photo'] != 'default_user.png') {
-                        unlink('upload/'.$findUser['photo']);
+                        unlink('upload/images/'.$findUser['photo']);
                     }
 
                 } catch (\Exception $e) {
