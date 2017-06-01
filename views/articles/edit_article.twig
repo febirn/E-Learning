@@ -8,7 +8,6 @@
 {% block content %}
 {% include 'templates/flash/flash.twig' %}
     <form method="post" action="{{path_for('web.get.update.article', {slug: article.title_slug})}}">
-    {{article|json_encode}}
         <div class="form-group has-feedback {{ errors.title ? 'has-error': '' }}">
             <label for="title">Title:</label>
             <input type="text" class="form-control" name="title" value="{{article.title}}">

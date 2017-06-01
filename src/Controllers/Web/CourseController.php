@@ -194,7 +194,11 @@ class CourseController extends \App\Controllers\BaseController
         } catch (GuzzleException $e) {
             $error = json_decode($e->getResponse()->getBody()->getContents(),true);
 
-            $this->flash->addMessage('errors', $error['message']);
+            foreach ($error['data'] as $key => $value) {
+                foreach ($value as $val) {
+                    $this->flash->addMessage('errors', $val);
+                }
+            }
 
             return $response->withRedirect($this->router->pathFor('web.get.update.course', ['slug' => $args['slug']]));
         }
@@ -231,7 +235,7 @@ class CourseController extends \App\Controllers\BaseController
     {
         $reqData = $request->getParams();
         $reqVideo = $request->getUploadedFiles()['url_video'];
-        
+
         if ($reqVideo) {
             if (!($reqVideo->getClientFilename() == null)) {
                 $sendData[] = [
@@ -253,11 +257,17 @@ class CourseController extends \App\Controllers\BaseController
         try {
             $client = $this->testing->request('POST', $this->router->pathFor('api.put.edit.course.content.id', ['slug' => $args['slug'], 'id' => $args['id']]), ['multipart' => $sendData]);
 
-            $content = json_decode($client->getBody(),true);
+            $this->flash->addMessage('success', 'Update data success');
 
             return $response->withRedirect($this->router->pathFor('web.get.course.content', ['slug' => $args['slug']]));
         } catch (GuzzleException $e) {
             $content = json_decode($e->getResponse()->getBody(),true);
+
+            foreach ($content['data'] as $key => $value) {
+                foreach ($value as $val) {
+                    $this->flash->addMessage('errors', $val);
+                }
+            }
 
             return $response->withRedirect($this->router->pathFor('web.get.course.content', ['slug' => $args['slug']]));
         }

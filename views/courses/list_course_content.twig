@@ -32,17 +32,17 @@
                 </tr>
             </thead>
             <tbody>
-            {% for course in course %}
+            {% for key, course in course %}
                 <tr>
                     <td>{{course.title}}</td>
                     <td class="col-md-6">
-                        <button class="btn btn-primary" data-toggle="modal" data-target="#video">
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#video{{key}}">
                             <i class="fa fa-eye" aria-hidden="true"></i>
                         </button>
 
                         <div class="dropdown inline-block">
                             <form method="post" action="{{path_for('web.hard.delete.course.content', {slug:slug, id:course.id})}}">
-                                <button class="btn btn-danger dropdown-toggle">
+                                <button class="btn btn-danger">
                                     <i class="fa fa-trash-o"></i>
                                 </button>
                             </form>
@@ -50,47 +50,45 @@
                     </td>
                 </tr>
 
-                    <div id="video" class="modal fade" role="dialog">
-                        <div class="modal-dialog">
-                        <form action="{{path_for('web.post.course.content.id', {slug:slug, id:course.id})}}" method="post" enctype="multipart/form-data">
-                            <div class="modal-content">
-                                <div class="modal-body">
-                                    {% if 'youtube' in course.url_video %}
-                                        <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "techOrder": ["youtube"], "playbackRates": [1, 1.5, 2]}'>
-                                            <source src="{{course.url_video}}" type='video/youtube'>
-                                            <p class="vjs-no-js">
-                                              To view this video please enable JavaScript, and consider upgrading to a web browser that
-                                              <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-                                            </p>
-                                        </video>
-                                    {% else %}
-                                        <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "playbackRates": [1, 1.5, 2]}'>
-                                            <source src="{{course.url_video}}" type='video/webm'>
-                                            <source src="{{course.url_video}}" type='video/mp4'>
-                                            <source src="{{course.url_video}}" type='video/3gp'>
-                                        </video>
-                                    {% endif %}
+                <div id="video{{key}}" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                    <form action="{{path_for('web.post.course.content.id', {slug:slug, id:course.id})}}" method="post" enctype="multipart/form-data">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                {% if 'youtube' in course.url_video %}
+                                    <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "techOrder": ["youtube"], "playbackRates": [1, 1.5, 2]}'>
+                                        <source src="{{course.url_video}}" type='video/youtube'>
+                                        <p class="vjs-no-js">
+                                          To view this video please enable JavaScript, and consider upgrading to a web browser that
+                                          <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+                                        </p>
+                                    </video>
+                                {% else %}
+                                    <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="none" data-setup='{ "aspectRatio":"640:267", "playbackRates": [1, 1.5, 2]}'>
+                                        <source src="{{course.url_video}}" type='video/webm'>
+                                        <source src="{{course.url_video}}" type='video/mp4'>
+                                        <source src="{{course.url_video}}" type='video/3gp'>
+                                    </video>
+                                {% endif %}
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <input class="form-control" type="text" name="title" value="{{course.title}}">
                                 </div>
-                                <div class="modal-body">
-                                    <div class="form-group">
-                                        <div class="col-lg-12">
-                                            <input type="text" name="title" value="{{course.title}}">
-                                        </div>
-                                    </div>
-                                    <div class="box-header">
-                                        <div class="form-group">
-                                            <input data-on="<i class='fa fa-file-code-o'></i> Embed" data-off="<i class='fa fa-file'></i> File" type="checkbox" checked id="checkbox" data-toggle="toggle" data-target="#collapse3rdParty" aria-expanded="false" aria-controls="collapse3rdParty">
-                                        </div>
-                                    </div>
-                                    <input type="text" class="form-control video" id="url" name="url_video">
+                                <div class="form-group">
+                                    <input data-on="<i class='fa fa-file-code-o'></i> Embed" data-toggle="toggle" data-off="<i class='fa fa-file'></i> File" type="checkbox" checked id="checkbox{{key}}" data-target="#collapse3rdParty" aria-expanded="false" aria-controls="collapse3rdParty">
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="submit" class="btn btn-default">Update</button>
+                                <div class="form-group">
+                                    <input type="text" class="form-control video" id="url" name="url_video" placeholder="File Upload">
                                 </div>
                             </div>
-                    </form>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-default">Update</button>
+                            </div>
                         </div>
+                    </form>
                     </div>
+                </div>
             {% endfor %}
             </tbody>
         </table>
@@ -108,10 +106,13 @@
             $('#course.datatable').DataTable();
         });
     </script>
-    <script>
-        $('#checkbox').change(function() {
-            console.log(this.checked);
-            $('.video').attr('type', this.checked ? 'text' : 'file');
-        });
-    </script>
+    {% for key, course in course %}        
+        <script>
+            $('#checkbox{{key}}').change(function() {
+                console.log(this.checked);
+                $('.video').attr('type', this.checked ? 'text' : 'file');
+            });
+        </script>
+    {% endfor %}
 {% endblock %}
+

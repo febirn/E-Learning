@@ -18,8 +18,18 @@
                         {% for category in article.category %}
                             <label for="{{category}}" class="label label-primary">{{category}}</label>
                         {% endfor %}
-                        <li><i class="fa fa-user"><b>{{article.username}}</b></i></li>
-                        <li><p class="item">{{article.publish_at|date('D, F d Y')}}</p></li>
+                    </ul>
+                    <ul class="list-inline pull-right">
+                        <li>
+                            <i class="fa fa-user"> 
+                                <b>{{article.username}}</b>
+                            </i>
+                        </li>
+                        <li>
+                            <p class="item">
+                                {{article.publish_at|date('D, F d Y')}}
+                            </p>
+                        </li>
                     </ul>
                     <br>
                 </div>

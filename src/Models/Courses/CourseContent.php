@@ -15,10 +15,8 @@ class CourseContent extends \App\Models\BaseModel
                 'title'         => $value[0],
                 'url_video'     => $value[1],
             ];
-
             $addCourseContent = $this->create($data);
         }
-        
         return $addCourseContent;
     }
 

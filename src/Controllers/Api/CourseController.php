@@ -248,7 +248,25 @@ class CourseController extends \App\Controllers\BaseController
             $this->validator->rule('required', 'url_video.*.' . $titleKey);
             if ($this->validator->validate()) {
 
-                $courseAdd = $courseContent->add($getCourse['id'], $reqData);
+                foreach ($reqData['title'] as $key => $values) {
+                    $var[] = $values;
+                    $titleVideo[$values] = $values;
+                }
+
+                foreach ($reqData['url_video'] as $keys => $valData) {
+                    $urlVideo[$keys] = $valData;
+                }
+                
+                $flipped = array_flip($urlVideo);
+                foreach ($flipped as $keyFlip => $valueFlip) {
+                    $flipped[$keyFlip] = ($valueFlip === $valueFlip ? $var[$valueFlip] : $var);
+                }
+                
+                $corrected = array_flip($flipped);
+                
+                $dataVideo = array_merge_recursive($titleVideo, $corrected);
+
+                $courseAdd = $courseContent->add($getCourse['id'], $dataVideo);
 
                 if (!is_int($courseAdd)) {
                     return $this->responseDetail('Title already used', 400);
@@ -299,7 +317,7 @@ class CourseController extends \App\Controllers\BaseController
                 }
 
                 $dataVideo = array_merge_recursive($titleVideo, $urlVideo);
-
+                
                 $courseAdd = $courseContent->add($getCourse['id'], $dataVideo);
 
                 if (!is_int($courseAdd)) {
@@ -328,15 +346,23 @@ class CourseController extends \App\Controllers\BaseController
         }
 
         $this->validator->rule('required', 'title');
-        $this->validator->rule('required', 'url_video');
 
         $upload = $request->getUploadedFiles();
         $reqData = $request->getParams();
 
         $courseContent = new \App\Models\Courses\CourseContent;
 
-        if ($this->validator->validate()) {
-            if ($upload) {
+        if (!$upload) {
+            $this->validator->rule('required', 'url_video');
+            if ($this->validator->validate()) {
+                $courseEdit = $courseContent->edit($reqData, $args['id'], $reqData['url_video']);
+            
+                return $this->responseDetail('Update Data Success', 200);
+            } else {
+                return $this->responseDetail('Errors', 400, $this->validator->errors());
+            }
+        } else {
+            if ($this->validator->validate()) {
                 $storage = new \Upload\Storage\FileSystem('upload/video/');
                 
                 // Setting URL
@@ -384,14 +410,9 @@ class CourseController extends \App\Controllers\BaseController
 
                 return $this->responseDetail('Update Data Success', 200);
             } else {
-                $courseEdit = $courseContent->edit($reqData, $args['id'], $reqData['url_video']);
-                
-                return $this->responseDetail('Update Data Success', 200);
+                return $this->responseDetail('Errors', 400, $this->validator->errors());
             }
-        } else {
-            return $this->responseDetail('Errors', 400, $this->validator->errors());
         }
-        
     }
 
 
