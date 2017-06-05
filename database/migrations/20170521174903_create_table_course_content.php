@@ -31,6 +31,7 @@ class CreateTableCourseContent extends AbstractMigration
         $course_content->addColumn('course_id', 'integer')
                        ->addColumn('title', 'string')
                        ->addColumn('url_video', 'string')
+                       ->addColumn('views', 'integer', ['default' => 0])
                        ->addColumn('deleted', 'integer', ['default' => 0, 'limit' => 1])
                        ->addForeignKey('course_id', 'courses', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
                        ->create();
