@@ -9,11 +9,6 @@
 {% block content %}
     {% include 'templates/flash/flash.twig' %}
     <div class="box box-primary">
-        <div class="box-header">
-            <div class="form-group">
-                <input data-on="<i class='fa fa-file-code-o'></i> Embed" data-off="<i class='fa fa-file'></i> File" type="checkbox" checked id="checkbox" data-toggle="toggle" data-target="#collapse3rdParty" aria-expanded="false" aria-controls="collapse3rdParty">
-            </div>
-        </div>
         <form id="courseForm" method="post" class="form-horizontal" enctype="multipart/form-data">
             <div class="box-body">
                 <div class="form-group">
@@ -24,38 +19,40 @@
                         <label for="url">Video</label>
                     </div>
                 </div>
-                    <div class="controls">
-                        <div class="multi form-group">
-                            <div class="col-lg-4">
-                                <input type="text" class="form-control" id="title" name="title[]">
-                            </div>
-                            <div class="col-lg-4">
-                                <input type="text" class="form-control video" id="url" name="url_video[]">
-                            </div>
-                            <div class="col-xs-1">
-                                <button type="button" class="btn btn-info addButton"><i class="fa fa-plus"></i></button>
-                            </div>
+                <div class="controls">
+                    <div class="multi form-group">
+                        <div class="col-lg-4">
+                            <input type="text" class="form-control" id="title" name="title[]">
+                        </div>
+                        <div class="col-lg-4">
+                            <input type="text" class="form-control video0" id="url" name="url_video[0]" required>
+                        </div>
+                        <div class="col-lg-1">
+                            <input type="checkbox" checked id="0" data-toggle="toggle" name="checkbox">
+                        </div>
+                        <div class="col-lg-1">
+                            <button type="button" id="addButton" class="btn btn-info addButton"><i class="fa fa-plus"></i></button>
                         </div>
                     </div>
+                </div>
             </div>
             <div class="box-footer">
                 <button type="submit" class="btn btn-primary btn-flat pull-right">Submit</button>
             </div>
+            <div id="data"></div>
+            {{number}}
         </form>
     </div>
 {% endblock %}
 
 {% block script %}
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
     <script>
-        $('#checkbox').change(function() {
-            console.log(this.checked);
-            $('.video').attr('type', this.checked ? 'text' : 'file');
-        });
-    </script>
-    <script>
+        no = 0;
         $(document).on('click', '.addButton', function(e) {
             e.preventDefault();
+            no++;
 
             var controlForm = $('.controls'),
                 currentEntry = $(this).parents('.multi'),
@@ -66,6 +63,14 @@
                         .removeClass('addButton').addClass('removeButton')
                         .removeClass('btn-info').addClass('btn-danger')
                         .html('<i class="fa fa-minus"></i>')
+
+                controlForm.find('.form-control:last')
+                        .attr('name', 'url_video[' + no + ']')
+                        .attr('class', 'form-control video'+no)
+                        .end()
+                controlForm.find('[name=checkbox]:last')
+                        .attr('id', no)
+                        .end()
             }).on('click', '.removeButton', function(e) {
                 $(this).parents('.multi').remove();
 
@@ -73,4 +78,14 @@
                 return false;
         });
     </script>
+    <script>
+    $(document).ready(function() {
+        $(document).on('change', 'input[type="checkbox"]', function(e) {
+            key = this.id;
+            console.log(this.checked);
+            $('.video'+key).attr('type', this.checked ? 'text' : 'file');
+        })
+    })
+    </script>
 {% endblock %}
+

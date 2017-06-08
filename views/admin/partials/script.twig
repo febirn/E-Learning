@@ -1,0 +1,19 @@
+<script src="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.3/summernote.js"></script>
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $("#category").select2({
+            tags:true,
+            tokenSeparators:[','],
+            placeholder: "Add tag separate with coma"
+        });
+
+        $('#summernote').summernote({
+            height: 200,
+            codemirror: {
+                theme: 'monokai'
+            }
+        });
+    });
+</script>

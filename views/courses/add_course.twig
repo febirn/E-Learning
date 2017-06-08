@@ -4,55 +4,88 @@
 
 {% block css %}
     <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.3/summernote.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
     {% include 'templates/flash/flash.twig' %}
     <div class="box box-primary">
-        <form role="form" method="POST">
+        <form role="form" method="POST" enctype="multipart/form-data">
             <div class="box-body">
-                <div class="form-group has-feedback {{ errors.title ? 'has-error': '' }}">
-                    <label for="title">Title</label>
-                    <input type="text" name="title" class="form-control" id="title">
-                    {% if errors.title %}
-                        <span class="help-block">{{ errors.title | first }}</span>
-                    {% endif %}
+                <div class="col-xs-9">
+                    <div class="form-group has-feedback {{ errors.title ? 'has-error': '' }}">
+                        <label for="title">Title</label>
+                        <input type="text" name="title" class="form-control" id="title">
+                        {% if errors.title %}
+                            <span class="help-block">{{ errors.title | first }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="form-group has-feedback {{ errors.category ? 'has-error': '' }}">
+                        <label for="category">Category</label>
+                        <select id="category" name="category[]" multiple="multiple" class="form-control" style="width: 100%" aria-hidden="true">
+                            {% for category in category %}
+                                <option value="{{category.name}}">{{category.name}}</option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.category %}
+                            <span class="help-block">{{ errors.category | first }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="form-group has-feedback {{ errors.url_source_code ? 'has-error': '' }}">
+                        <label>Url source code</label>
+                        <input type="text" class="form-control" name="url_source_code">
+                        {% if errors.url_source_code %}
+                            <span class="help-block">{{ errors.url_source_code | first }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="form-group has-feedback {{ errors.description ? 'has-error': '' }}">
+                        <textarea name="description" id="summernote"></textarea>
+                        {% if errors.description %}
+                            <span class="help-block">{{ errors.description | first }}</span>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="form-group has-feedback {{ errors.category ? 'has-error': '' }}">
-                    <label for="category">Category</label>
-                    <select id="category" name="category[]" multiple="multiple"  class="form-control">
-                        {% for category in category %}
-                            <option value="{{category.name}}">{{category.name}}</option>
-                        {% endfor %}
-                    </select>
-                    {% if errors.category %}
-                        <span class="help-block">{{ errors.category | first }}</span>
-                    {% endif %}
-                </div>
-                <div class="form-group has-feedback {{ errors.url_source_code ? 'has-error': '' }}">
-                    <label>Url source code</label>
-                    <input type="text" class="form-control" name="url_source_code">
-                    {% if errors.url_source_code %}
-                        <span class="help-block">{{ errors.url_source_code | first }}</span>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <input type="checkbox" name="type" checked data-toggle="toggle" data-on="<i class='fa fa-star'></i> Premium" data-off="<i class='fa fa-check'></i> Free">
+                <div class="col-xs-3 ">
+                    <label>Cover</label>
+                    <img src="{{ base_url() }}/upload/images/default_cover.jpg" alt="Cover Image" class="image_preview" id="image">
+                    <label class="button-change-avatar mt-3 position-relative width-full btn btn-default">
+                        Image Cover
+                        <input type="file" class="form-control manual-file-chooser height-full width-full ml-0" id="file" name="cover">
+                    </label>
                 </div>
             </div>
             <div class="box-footer">
-                <button type="submit" class="btn btn-primary pull-right"><i class="fa fa-reply"></i> Submit</button>
+                <div class="col-xs-12">
+                    <div class="pull-left">
+                        <input type="checkbox" name="type" checked data-toggle="toggle" data-on="<i class='fa fa-star'></i> Premium" data-off="<i class='fa fa-check'></i> Free">
+                    </div>
+                    <button type="submit" class="btn btn-primary pull-right"><i class="fa fa-reply"></i> Submit</button>
+                </div>
             </div>
         </form>
+    </div>
 {% endblock %}
 
 {% block script %}
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    {% include 'admin/partials/script.twig' %}
+
     <script>
-        $("#category").select2({
-            tags:true,
-            tokenSeparators:[','],
-            placeholder: "Add tag separate with coma"
+    $(document).ready(function (e) {
+        $(function() {
+            $("#file").change(function() {
+                var file = this.files[0];
+                var imagefile = file.type;
+                var match= ["image/jpeg","image/png","image/jpg", "image/gif"];
+                if((imagefile==match[0]) || (imagefile==match[1]) || (imagefile==match[2]) || (imagefile==match[3])) {
+                    var reader = new FileReader();
+                    reader.onload = imageIsLoaded;
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
         });
-    </script>  
+        function imageIsLoaded(e) {
+            $('#image').attr('src', e.target.result);
+        };
+    });
+    </script>
 {% endblock %}

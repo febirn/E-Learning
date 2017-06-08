@@ -94,6 +94,7 @@ $app->group('', function() use($app,$container) {
         $app->get('/category/{category}', 'App\Controllers\Web\CourseController:searchByCategory')->setName('web.course.category');
         $app->get('/{slug}', 'App\Controllers\Web\CourseController:searchBySlug')->setName('web.course.slug');
         $app->get('/{slug}/video/{id}', 'App\Controllers\Web\CourseController:viewVideo')->setName('web.course.view.video');
+        $app->get('/type/{type}', 'App\Controllers\Web\CourseController:searchByType')->setName('web.course.type');
     });
 
 	$app->group('/article', function() use($app, $container) {

@@ -2,15 +2,6 @@
 
 {% block title %}E-Learning{% endblock %}
 
-{% block css %}
-	<style>
-	    .item{
-	        font-size: .85em;
-	        color: #9f9f9f;
-	    }
-    </style>
-{% endblock %}
-
 {% block body %}
 	<body class="hold-transition skin-blue layout-top-nav">
 		<div class="wrapper">
@@ -27,9 +18,9 @@
                     </h1>
                 </section>
 				<section class="content">
-					<div class="row">
+					<div class="row masonry-container">
 						{% for course in data %}
-							<div class="col-lg-4">
+							<div class="col-md-4 col-sm-6 grid">
 								<div class="box box-default">
 									<div class="box-header with-border">
 										<h3 class="box-title">
@@ -39,16 +30,30 @@
 										</h3>
 									</div>
 									<div class="box-body">
+										<img src="{{base_url()}}/upload/images/{{course.cover}}" alt="{{course.cover}}" class="cover">
+									</div>
+									<div class="box-body">
+										{{course.description|raw}}
+									</div>
+									<div class="box-footer">
 						    			{% for category in course.category %}
 						    			    <button type="button" class="btn btn-sm btn-default">{{category}}</button>
 						    			{% endfor %}
-						            	<br><br>
-						            	<div>
-						                	<div class="col-sm-4">
-						                		<i class="fa fa-tasks item"> {{course.video| first}} parts</i>
+						            	<div class="mt-md">
+						                	<div class="col-sm-4 pull-left no-padding">
+						                		<i class="fa fa-tasks item"></i> <span class="item">{{course.video| first}} parts </span>
 						                	</div>
-							                <div class="col-sm-4">
+							                <div class="col-sm-4 text-center">
 	                							<p class="item">{{data.create_at|date('D, F d Y')}}</p>
+	              							</div>
+	              							<div class="col-sm-4 no-padding">
+		              							<ul class="list-inline pull-right no-padding">
+						                            {% if course.type == 0 %}
+						                                <li class="no-padding"><label for="type" class="label label-default">Free</label></li>
+						                            {% else %}
+						                                <li class="no-padding"><label for="type" class="label label-primary">Premium</label></li>
+						                            {% endif %}
+						                        </ul>
 	              							</div>
 						            	</div>
 									</div>
@@ -62,4 +67,13 @@
 	</body>
 {% endblock %}
 
-{% block script %}{% endblock %}
+{% block script %}
+<script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+<script>
+	var $container = $('.masonry-container');
+	$container.masonry({
+    	columnWidth: '.grid',
+    	itemSelector: '.grid'
+ 	});   
+</script>
+{% endblock %}

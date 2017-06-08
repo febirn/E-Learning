@@ -251,7 +251,7 @@ class UserController extends \App\Controllers\BaseController
         }
         
         try {
-            $client = $this->testing->request('POST', $this->router->pathFor('api.put.edit.profile.user', ['id' => $id]), [ 'multipart' => $data]);
+            $client = $this->testing->request('POST', $this->router->pathFor('api.put.edit.profile.user', ['id' => $id]), ['multipart' => $data]);
 
             $this->flash->addMessage('success', 'Data has bean Update');
 

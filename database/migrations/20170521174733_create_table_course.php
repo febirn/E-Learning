@@ -32,6 +32,8 @@ class CreateTableCourse extends AbstractMigration
                 ->addColumn('title', 'string')
                 ->addColumn('title_slug', 'string')
                 ->addColumn('type', 'integer', ['default' => 0, 'limit' => 1])
+                ->addColumn('cover', 'string', ['default' => 'default_cover.jpg'])
+                ->addColumn('description', 'text')
                 ->addColumn('url_source_code', 'string')
                 ->addColumn('create_at', 'timestamp', ['default' => 'CURRENT_TIMESTAMP'])
                 ->addColumn('update_at', 'timestamp', ['default' => 'CURRENT_TIMESTAMP', 'update' => 'CURRENT_TIMESTAMP'])

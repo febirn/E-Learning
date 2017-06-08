@@ -103,6 +103,7 @@ class CourseController extends \App\Controllers\BaseController
                 ['title'],
                 ['category'],
                 ['url_source_code'],
+                ['description'],
             ],
         ];
 
@@ -117,7 +118,27 @@ class CourseController extends \App\Controllers\BaseController
 
         if ($this->validator->validate()) {
             $courses = new \App\Models\Courses\Course;
-            $createCourse = $courses->add($post);
+
+            if ($request->getUploadedFiles()) {
+                $upload = new \Upload\Storage\FileSystem('upload/images');
+                $file = new \Upload\File('cover', $upload);
+
+                $file->setName(uniqid());
+
+                $file->addValidations(array(
+                    new \Upload\Validation\Mimetype(array('image/png', 'image/gif', 'image/jpg', 'image/jpeg')), new \Upload\Validation\Size('5M')));
+
+                $cover = $file->getNameWithExtension();
+
+                try {
+                    $file->upload();
+                } catch (\Exception $e) {
+                    $errors = $file->getErrors();
+                    return $this->responseDetail("Error", 400, $errors);
+                }
+            }
+
+            $createCourse = $courses->add($post, $cover);
 
             if (!is_int($createCourse)) {
                 return $this->responseDetail('Title have already used', 400);
@@ -145,15 +166,16 @@ class CourseController extends \App\Controllers\BaseController
         $rule = [
             'required' => [
                 ['title'],
-                ['url_source_code'],
                 ['category'],
+                ['url_source_code'],
+                ['description'],
             ],
         ];
 
         $token = $request->getHeader('Authorization')[0];
         $course = new \App\Models\Courses\Course;
         $getCourse = $course->getCourse($args['slug']);
-        
+
         $validateUser = $this->validateUser($token, $getCourse);
 
         if (!$this->checkCourse($getCourse)) {
@@ -165,8 +187,31 @@ class CourseController extends \App\Controllers\BaseController
         $this->validator->rules($rule);
 
         if ($this->validator->validate()) {
-            $course = new \App\Models\Courses\Course;
-            $update = $course->edit($post, $args['slug']);
+            if ($request->getUploadedFiles()) {
+                $upload = new \Upload\Storage\FileSystem('upload/images');
+                $file = new \Upload\File('cover', $upload);
+
+                $file->setName(uniqid());
+
+                $file->addValidations(array(
+                    new \Upload\Validation\Mimetype(array('image/png', 'image/gif', 'image/jpg', 'image/jpeg')), new \Upload\Validation\Size('5M')));
+
+                $cover = $file->getNameWithExtension();
+
+                try {
+                    $file->upload();
+
+                    if ($getCourse['cover'] != 'default_cover.jpg') {
+                        unlink('upload/images/' . $getCourse['cover']);
+                    } 
+                } catch (\Exception $e) {
+                    $errors = $file->getErrors();
+                    return $this->responseDetail("Error", 400, $errors);
+                }
+            }
+
+
+            $update = $course->edit($post, $args['slug'], $cover);
 
             if (!is_array($update)) {
                 return $this->responseDetail("Title already used", 400);
@@ -212,8 +257,8 @@ class CourseController extends \App\Controllers\BaseController
     public function addCourseContent(Request $request, Response $response, $args)
     {
         $token = $request->getHeader('Authorization')[0];
-       	
-       	$userToken = $this->findToken();
+        
+        $userToken = $this->findToken();
         $userId = $userToken['user_id'];
 
         $courses = new \App\Models\Courses\Course;
@@ -227,6 +272,10 @@ class CourseController extends \App\Controllers\BaseController
 
         $upload = $request->getUploadedFiles();
         $reqData = $request->getParams();
+
+        // var_dump($upload);
+        // var_dump($reqData);
+        // die();
         
         foreach ($reqData['title'] as $titleKey => $value) {
             $title[$titleKey] = $value;
@@ -243,8 +292,68 @@ class CourseController extends \App\Controllers\BaseController
                 return $this->responseDetail('Title cannot be same', 400);
             }
         }
-        
-        if (!$upload) {
+
+        if ($upload && $reqData['url_video']) {
+            $this->validator->rule('required', 'url_video.*.' . $titleKey);
+            if ($this->validator->validate()) {
+                $storage = new \Upload\Storage\FileSystem('upload/video/');
+                
+                // Setting URL
+                $baseUrl = $request->getUri();
+                $scheme = $baseUrl->getScheme();
+                $host = $baseUrl->getHost();
+                $port = ($baseUrl->getPort() != null) ? $baseUrl->getPort() : null;
+                $basePath = $baseUrl->getBasePath();
+
+                $file = new \Upload\File('url_video', $storage);
+
+                $file->addValidations([
+                    new \Upload\Validation\Mimetype(['video/mp4', 'video/3gp', 'video/webm']),
+                    new \Upload\Validation\Size('128M')
+                ]);
+
+                foreach ($upload['url_video'] as $key => $valData) {
+                    $file[$key]->setName(uniqid());
+                    
+                    $fileName = $file[$key]->getNameWithExtension();
+                    
+                    $url = $scheme . '://' . $host . ':' . $port . $basePath . '/upload/video/' . $fileName;
+
+                    $urlVideo[$key] = $url;
+                }
+
+                foreach ($reqData['title'] as $titleKey => $titleValue) {
+                    $var[] = $titleValue;
+                    $dataTitle[$titleValue] = $titleValue;
+                }
+
+                foreach ($reqData['url_video'] as $videoKey => $videoValue) {
+                    $video[$videoKey] = $videoValue;
+                }
+
+                $mergeData = array_merge($video, $urlVideo);
+                $corrected = $this->flipped($var, $mergeData);
+                // var_dump($upload['url_video']);
+                // var_dump($reqData['url_video']);
+                // var_dump($mergeData);
+                // var_dump($video);
+                
+                $dataVideo = array_merge_recursive($dataTitle, $corrected);
+
+                try {
+                    $file->upload();
+                } catch (\Exception $errors) {
+                    $errors = $file->getErrors();
+                    return $this->responseDetail($errors, 400);
+                }
+
+                $courseAdd = $courseContent->add($getCourse['id'], $dataVideo);
+                
+                return $this->responseDetail('Success', 200);
+            } else {
+                return $this->responseDetail('Errors', 400, $this->validator->errors());
+            }
+        } elseif (!$upload) {
             $this->validator->rule('required', 'url_video.*.' . $titleKey);
             if ($this->validator->validate()) {
 
@@ -256,15 +365,20 @@ class CourseController extends \App\Controllers\BaseController
                 foreach ($reqData['url_video'] as $keys => $valData) {
                     $urlVideo[$keys] = $valData;
                 }
-                
-                $flipped = array_flip($urlVideo);
-                foreach ($flipped as $keyFlip => $valueFlip) {
-                    $flipped[$keyFlip] = ($valueFlip === $valueFlip ? $var[$valueFlip] : $var);
+
+                $array_temp = [];
+
+                foreach($urlVideo as $key => $val) {
+                    if (!in_array($val, $array_temp)) {
+                        $array_temp[] = $val;
+                    } else {
+                        return $this->responseDetail('Video cannot be same', 400);
+                    }
                 }
+
+                $flipped = $this->flipped($var, $urlVideo);
                 
-                $corrected = array_flip($flipped);
-                
-                $dataVideo = array_merge_recursive($titleVideo, $corrected);
+                $dataVideo = array_merge_recursive($titleVideo, $flipped);
 
                 $courseAdd = $courseContent->add($getCourse['id'], $dataVideo);
 
@@ -306,7 +420,6 @@ class CourseController extends \App\Controllers\BaseController
                         $urlVideo[$values] = $url;
                     }
                     $titleVideo[$values] = $values;
-
                 }
 
                 try {
@@ -615,6 +728,41 @@ class CourseController extends \App\Controllers\BaseController
         }
 
         return $this->responseDetail("Data Available", 200, $getVideo);
+    }
+
+    public function flipped(array $key, array $data)
+    {
+        $flipped = array_flip($data);
+        foreach ($flipped as $keyFlip => $valueFlip) {
+            $flipped[$keyFlip] = ($valueFlip === $valueFlip ? $key[$valueFlip] : $data);
+        }
+        
+        return $corrected = array_flip($flipped);
+    }
+
+    public function searchByType(Request $request, Response $response, $args)
+    {
+        $page = $request->getQueryParam('page') ? $request->getQueryParam('page') : 1;
+
+        $course = new \App\Models\Courses\Course;
+        $category = new \App\Models\Categories\Category;
+
+        if ($args['type'] === 'premium') {
+            $args['type'] = 1;
+        } elseif ($args['type'] === 'free') {
+            $args['type'] = 0;
+        } else {
+            $args['type'] = null;
+        }
+
+        $allCourse['content'] = $course->showByType($args['type'], $page, 10);
+        $allCourse['category'] = $category->getAll()->fetchAll();
+
+        if (!$allCourse) {
+            return $this->responseDetail("Courses Not Found", 404);
+        }
+
+        return $this->responseDetail("Data Available", 200, $allCourse);
     }
 
 }

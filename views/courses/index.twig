@@ -32,7 +32,7 @@
                         <hr>
                         <ul class="list-inline">
                             <li><i class="fa fa-user"> <b>{{data.username}}</b></i></li>
-                            <li><p class="item">{{data.publish_at|date('D, F d Y')}}</p></li>
+                            <li><span class="item">{{data.publish_at|date('D, F d Y')}}</span></li>
                             <li><i class="fa fa-tasks item"> {{data.video}} parts</i></li>
                             {% if data.type == 0 %}
                                 <li><label for="type" class="label label-default">Free</label></li>
@@ -83,6 +83,8 @@
                 <ul class="list-group">
                     <li class="list-group-item"><b>By subject</b></li>
                     <li class="list-group-item"><a href="{{path_for('web.course.show.for.user')}}">All</a></li>
+                    <li class="list-group-item"><a href="{{path_for('web.course.type', {type:'free'})}}">Free</a></li>
+                    <li class="list-group-item"><a href="{{path_for('web.course.type', {type:'premium'})}}">Premium</a></li>
                     {% for category in course.category %}
                         <li class="list-group-item"><a href="{{path_for('web.course.category', {category: category.name})}}">{{category.name}}</a></li>
                     {% endfor %}

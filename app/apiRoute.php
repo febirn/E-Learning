@@ -84,6 +84,7 @@ $app->group('/api', function() use ($app,$container) {
         $app->get('/category/{category}', 'App\Controllers\Api\CourseController:searchByCategory')->setName('api.course.category');
         $app->get('/{slug}', 'App\Controllers\Api\CourseController:searchBySlug')->setName('api.course.slug');
         $app->get('/{slug}/video/{id}', 'App\Controllers\Api\CourseController:viewVideo')->setName('api.course.view.video');
+        $app->get('/filter/{type}', 'App\Controllers\Api\CourseController:searchByType')->setName('api.course.search.type');
     });
 
 	$app->group('/article', function() use($app, $container) {

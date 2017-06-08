@@ -5,12 +5,12 @@ namespace App\Models\Courses;
 class Course extends \App\Models\BaseModel
 {
     protected $table = "courses";
-    protected $column = ['id', 'user_id', 'title', 'title_slug', 'type', 'url_source_code', 'create_at', 'update_at', 'deleted'];
+    protected $column = ['id', 'user_id', 'title', 'title_slug', 'cover', 'description', 'type', 'url_source_code', 'create_at', 'update_at', 'deleted'];
     protected $check = ["title_slug"];
 
     public function showForHome($limit)
     {
-        $course = $this->getAll()->descSort('id')->limit($limit)->fetchAll();
+        $course = $this->getAll()->descSort('update_at')->limit($limit)->fetchAll();
  
         if (!$course) {
             return false;
@@ -116,25 +116,34 @@ class Course extends \App\Models\BaseModel
         return $course;
     }
 
-    public function add(array $data)
+    public function add(array $data, $cover = null)
     {
         $data = [
             'user_id'           =>  $data['user_id'],
             'title'             =>  $data['title'],
             'title_slug'        =>  preg_replace('/[^A-Za-z0-9-]+/', '-', strtolower($data['title'])),
             'type'              =>  $data['type'],
+            'cover'             =>  $cover,
+            'description'       =>  $data['description'],
             'url_source_code'   =>  $data['url_source_code'],
         ];
+
+        if ($cover == null) {
+            unset($data['cover']);
+        }
+
         return $this->checkOrCreate($data);
     }
 
-    public function edit($data, $slug)
+    public function edit($data, $slug, $cover = null)
     {
         $edit = [
             'title'             =>  $data['title'],
             'title_slug'        =>  preg_replace('/[^A-Za-z0-9-]+/', '-', strtolower($data['title'])),
             'type'              =>  $data['type'],
             'url_source_code'   =>  $data['url_source_code'],
+            'cover'             =>  $cover,
+            'description'       =>  $data['description'],
         ];
 
         $find = $this->find('title_slug', $slug)->fetch();
@@ -142,6 +151,10 @@ class Course extends \App\Models\BaseModel
         if ($find['title'] == $edit['title']) {
             unset($edit['title']);
             unset($edit['title_slug']);
+        }
+
+        if ($cover == null) {
+            unset($edit['cover']);
         }
 
         return $this->checkOrUpdate($edit, 'id', $find['id']);
@@ -417,4 +430,52 @@ class Course extends \App\Models\BaseModel
         return $course;
     }
 
+    public function showByType($type, int $page, int $limit)
+    {
+        $qbCourse = $this->getBuilder();
+
+        $this->query = $qbCourse->select('c.*', 'u.username')
+                        ->from($this->table, 'c')
+                        ->innerJoin('c', 'course_category', 'cc', 'cc.course_id = c.id')
+                        ->innerJoin('c', 'users', 'u', 'c.user_id = u.id')
+                        ->innerJoin('cc', 'categories', 'ctg', 'ctg.id = cc.category_id')
+                        ->where('c.type = :type')
+                        ->andWhere('c.deleted = 0')
+                        ->setParameter(':type', $type);
+
+        $course = $this->paginate($page, $limit);
+
+        if (!$course) {
+            return false;
+        }
+
+        foreach ($course['data'] as $keyCourse => $valueCourse) {
+            $qb = $this->getBuilder();
+
+            $categories = $qb->select('c.name as category')
+               ->from('categories', 'c')
+               ->innerJoin('c', 'course_category', 'ac', 'c.id = ac.category_id')
+               ->innerJoin('ac', 'courses', 'a', 'ac.course_id = a.id')
+               ->where('a.id = :id AND a.deleted = 0')
+               ->setParameter(':id', $valueCourse['id'])
+               ->execute()
+               ->fetchAll();
+
+            foreach ($categories as $keyCategory => $valueCategory) {
+                $course['data'][$keyCourse]['category'][] = $valueCategory['category'];
+            }
+
+            $video = $this->getBuilder()->select('cctn.id')
+                    ->from('course_content', 'cctn')
+                    ->innerJoin('cctn', 'courses', 'csrid', 'cctn.course_id = csrid.id')
+                    ->where('cctn.course_id = :courseId')
+                    ->setParameter(':courseId', $valueCourse['id'])
+                    ->execute()
+                    ->fetchAll();
+                
+            $course['data'][$keyCourse]['video'] = count($video);
+        }
+    
+        return $course;
+    }
 }

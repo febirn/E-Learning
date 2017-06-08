@@ -7,17 +7,16 @@
 
 {% block content %}
 {% include 'templates/flash/flash.twig'%}
-<div class="box-body">
+<div class="box box-body box-primary">
     {% if course == false %}
         <div class="jumbotron">
             <h1>You not have Courses</h1>
-            <a href="{{path_for('web.get.create.course')}}">
-                <button>Create Course</button>
+            <a href="{{path_for('web.get.update.course', {slug:slug})}}">
+                <button>Create Course Content</button>
             </a>
         </div>
     {% else %}
-    <div id="course.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
-        
+    <div id="course.datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap col-lg-12">
         <section class="content-header">
             <a href="{{path_for('web.get.update.course', {slug:slug})}}" class="first">
                 <button class="btn btn-primary pull-right">Create New Course</button>
@@ -79,7 +78,7 @@
                                     <input data-on="<i class='fa fa-file-code-o'></i> Embed" data-toggle="toggle" data-off="<i class='fa fa-file'></i> File" type="checkbox" checked id="checkbox{{key}}" data-target="#collapse3rdParty" aria-expanded="false" aria-controls="collapse3rdParty">
                                 </div>
                                 <div class="form-group">
-                                    <input type="text" class="form-control video" id="url" name="url_video" placeholder="File Upload">
+                                    <input type="text" class="form-control video{{key}}" id="url" name="url_video" placeholder="File Upload">
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -110,7 +109,7 @@
         <script>
             $('#checkbox{{key}}').change(function() {
                 console.log(this.checked);
-                $('.video').attr('type', this.checked ? 'text' : 'file');
+                $('.video{{key}}').attr('type', this.checked ? 'text' : 'file');
             });
         </script>
     {% endfor %}

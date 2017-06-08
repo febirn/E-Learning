@@ -65,11 +65,41 @@ class CourseController extends \App\Controllers\BaseController
 
     public function postCreateCourse(Request $request, Response $response)
     {
-        $body = $request->getParsedBody();
-        $body['type'] = $body['type'] == 'on' ? 1 : 0;
+        $reqData = $request->getParsedBody();
+        $reqData['type'] = $reqData['type'] == 'on' ? 1 : 0;
+
+        foreach ($reqData['category'] as $key => $value) {
+            $data[] = [
+                'name'  =>  'category' . '[' . $key . ']',
+                'contents'  => $value,
+            ];
+        }
+
+        unset($reqData['category']);
+
+        $reqPhoto = $request->getUploadedFiles()['cover'];
+
+        $imageName = $reqPhoto->getClientFilename();
+        $imageMimeType = $reqPhoto->getClientMediaType();
+
+        if (!($imageName == null)) {
+            $data[] = [
+                'name' => "cover",
+                'filename' => $imageName,
+                'Mime-Type'=> $imageMimeType,
+                'contents' => fopen(realpath($reqPhoto->file), 'rb'),
+            ];
+        }
+
+        foreach ($reqData as $key => $value) {
+            $data[] = [
+                'name' => $key,
+                'contents' => $value,
+            ];
+        }
 
         try {
-            $client = $this->testing->request('POST', $this->router->pathFor('api.post.create.course'), ['json' => $body]);
+            $client = $this->testing->request('POST', $this->router->pathFor('api.post.create.course'), ['multipart' => $data]);
 
             $content = json_decode($client->getBody()->getContents(),true)['data'];
             
@@ -89,7 +119,7 @@ class CourseController extends \App\Controllers\BaseController
                 $_SESSION['errors'][lcfirst($errorArr[0])][] = $error;
             }
 
-            $_SESSION['old'] = $req;
+            $_SESSION['old'] = $reqData;
 
             $this->flash->addMessage('errors', 'Please Fill the Form');
 
@@ -113,12 +143,41 @@ class CourseController extends \App\Controllers\BaseController
 
     public function postEditCourse(Request $request, Response $response, $args)
     {
-        $reqData = $request->getParams();
-        // var_dump($reqData);die();
+        $reqData = $request->getParsedBody();
         $reqData['type'] = $reqData['type'] == 'on' ? 1 : 0;
 
+        foreach ($reqData['category'] as $key => $value) {
+            $data[] = [
+                'name'  =>  'category' . '[' . $key . ']',
+                'contents'  => $value,
+            ];
+        }
+
+        unset($reqData['category']);
+
+        $reqPhoto = $request->getUploadedFiles()['cover'];
+
+        $imageName = $reqPhoto->getClientFilename();
+        $imageMimeType = $reqPhoto->getClientMediaType();
+
+        if (!($imageName == null)) {
+            $data[] = [
+                'name' => "cover",
+                'filename' => $imageName,
+                'Mime-Type'=> $imageMimeType,
+                'contents' => fopen(realpath($reqPhoto->file), 'rb'),
+            ];
+        }
+
+        foreach ($reqData as $key => $value) {
+            $data[] = [
+                'name' => $key,
+                'contents' => $value,
+            ];
+        }
+
         try {
-            $client = $this->testing->request('POST', $this->router->pathFor('api.post.edit.course', ['slug' => $args['slug']]), ['json' => $reqData]);
+            $client = $this->testing->request('POST', $this->router->pathFor('api.post.edit.course', ['slug' => $args['slug']]), ['multipart' => $data]);
 
             $content = json_decode($client->getBody()->getContents(),true);
 
@@ -127,9 +186,20 @@ class CourseController extends \App\Controllers\BaseController
             return $response->withRedirect($this->router->pathFor('web.get.my.course'));
 
         } catch (GuzzleException $e) {
-            $content = json_decode($e->getResponse()->getBody()->getContents(), true);
+            $data = json_decode($e->getResponse()->getBody()->getContents(), true);
 
-            $this->flash->addMessage('errors', $content['data']);
+            $error = $data['data'] ? $data['data'] : $data['message'];
+
+            if (is_array($error)) {
+                foreach ($error as $key => $val) {
+                    $_SESSION['errors'][$key] = $val;
+                }
+            } else {
+                $errorArr = explode(' ', $error);
+                $_SESSION['errors'][lcfirst($errorArr[0])][] = $error;
+            }
+
+            $this->flash->addMessage('errors', 'Please Fill the Form');
 
             return $response->withRedirect($this->router->pathFor('web.edit.course', ["slug" => $args['slug']]));
         }
@@ -154,7 +224,11 @@ class CourseController extends \App\Controllers\BaseController
         $reqData = $request->getParams();
         $reqVideo = $request->getUploadedFiles()['url_video'];
 
-        if ($reqVideo) {
+        if ($reqData && $reqVideo) {
+            var_dump($reqData);
+            var_dump($reqVideo);
+            die();
+        } elseif ($reqVideo) {
             foreach ($reqVideo as $keyVideo => $valueVideo) {
                 if (!($valueVideo->getClientFilename() == null)) {
                     $data['video'][] = [
@@ -174,7 +248,6 @@ class CourseController extends \App\Controllers\BaseController
             }
 
             $sendData = array_merge($data['title'], $data['video']);
-
         } else {
             foreach ($reqData as $keyName => $valueName) {
                 foreach ($valueName as $key => $value) {
@@ -192,13 +265,15 @@ class CourseController extends \App\Controllers\BaseController
             return $response->withRedirect($this->router->pathFor('web.get.my.course'));
 
         } catch (GuzzleException $e) {
-            $error = json_decode($e->getResponse()->getBody()->getContents(),true);
+            $data = json_decode($e->getResponse()->getBody()->getContents(), true);
 
-            foreach ($error['data'] as $key => $value) {
-                foreach ($value as $val) {
-                    $this->flash->addMessage('errors', $val);
-                }
+            foreach ($data['data'] as $key => $value) {
+                $data['data'] = "Title is required" ;
             }
+
+            $error = $data['data'] ? $data['data'] : $data['message'];
+
+            $this->flash->addMessage('errors', $error);
 
             return $response->withRedirect($this->router->pathFor('web.get.update.course', ['slug' => $args['slug']]));
         }
@@ -400,5 +475,24 @@ class CourseController extends \App\Controllers\BaseController
         }
 
         return $this->view->render($response, 'courses/view_course.twig', ['data' => $content['data'], 'video_id' => $args['id']]);
+    }
+
+    public function searchByType(Request $request, Response $response, $args)
+    {
+        $course = $this->testing->request('GET', $this->router->pathFor('api.course.search.type', ['type' => $args['type']]));
+        
+        $course = json_decode($course->getBody()->getContents(), true);
+
+        return $this->view->render($response, 'courses/index.twig', ['course' => $course['data']]);
+    }
+
+    public function flipped(array $key, array $data)
+    {
+        $flipped = array_flip($data);
+        foreach ($flipped as $keyFlip => $valueFlip) {
+            $flipped[$keyFlip] = ($valueFlip === $valueFlip ? $key[$valueFlip] : $data);
+        }
+        
+        return $corrected = array_flip($flipped);
     }
 }
